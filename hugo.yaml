@@ -66,4 +66,3 @@ outputs:
   home:
     - HTML
     - RSS
-    - JSON
