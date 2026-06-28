@@ -2,7 +2,8 @@ baseURL: "https://ismailkulah.github.io/"
 languageCode: "en"
 title: "CyberSec Lab"
 theme: "PaperMod"
-paginate: 6
+pagination:
+  pagerSize: 6
 
 params:
   env: production
