@@ -1,0 +1,69 @@
+baseURL: "https://ismailkulah.github.io/"
+languageCode: "tr"
+title: "CyberSec Lab"
+theme: "PaperMod"
+paginate: 6
+
+params:
+  env: production
+  title: "CyberSec Lab"
+  description: "Siber güvenlik araçları, forensic analizler ve lab write-upları"
+  author: "Senin Adın"
+  
+  defaultTheme: dark
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowFullTextinRSS: true
+
+  homeInfoParams:
+    Title: "👾 CyberSec Lab"
+    Content: >
+      Siber güvenlik araçları, forensic analizler, CTF write-upları ve lab ortamları.
+      Güvenliği öğrenmek için doğru yerdesin.
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/ismailkulah"
+    - name: linkedin
+      url: "https://linkedin.com/in/ismailkulah"
+    - name: twitter
+      url: "https://twitter.com/ismailkulah"
+
+  profileMode:
+    enabled: false
+
+  label:
+    text: "🔐 CyberSec Lab"
+
+menu:
+  main:
+    - identifier: tools
+      name: "🛠 Araçlar"
+      url: /tools/
+      weight: 10
+    - identifier: blog
+      name: "📝 Blog"
+      url: /blog/
+      weight: 20
+    - identifier: writeups
+      name: "🚩 Write-ups"
+      url: /writeups/
+      weight: 30
+    - identifier: about
+      name: "👤 Hakkımda"
+      url: /about/
+      weight: 40
+
+taxonomies:
+  category: categories
+  tag: tags
+  series: series
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
