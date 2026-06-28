@@ -1,101 +1,93 @@
-.header-nav {
+.nav {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     max-width: calc(var(--nav-width) + var(--gap) * 2);
-    margin: auto;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
     line-height: var(--header-height);
-    padding: 0 var(--gap);
-    column-gap: var(--gap);
 }
 
-.header-nav a {
+.nav a {
     display: block;
 }
 
 .logo,
-.menu {
+#menu {
     display: flex;
+    margin: auto var(--gap);
 }
 
 .logo {
-    align-items: center;
-    column-gap: 0.55rem;
-    flex-wrap: wrap;
+    flex-wrap: inherit;
 }
 
 .logo a {
     font-size: 24px;
     font-weight: 700;
-    display: flex;
-    align-items: center;
-    column-gap: 0.55rem;
 }
 
-.logo a img,
-.logo a svg {
+.logo a img, .logo a svg {
+    display: inline;
+    vertical-align: middle;
     pointer-events: none;
+    transform: translate(0, -10%);
     border-radius: 6px;
+    margin-inline-end: 8px;
 }
 
-.theme-toggle {
-    padding: 0 0.4rem;
+button#theme-toggle {
+    font-size: 26px;
+    margin: auto 4px;
 }
 
-[data-theme="dark"] .moon {
+body.dark #moon {
+    vertical-align: middle;
     display: none;
 }
 
-[data-theme="light"] .sun {
+body:not(.dark) #sun {
     display: none;
 }
 
-.logo-switches {
-    display: inline-flex;
-    gap: 0.4rem;
-    align-items: inherit;
-    min-height: stretch;
-    flex-wrap: inherit;
-}
-
-.logo-switches>* {
-    min-height: inherit;
-    align-items: center;
-    display: inline-flex;
-}
-
-.nav-sep {
-    color: var(--secondary);
-}
-
-.lang-menu * {
-    display: inherit;
-    min-height: inherit;
-    align-items: inherit;
-}
-
-.lang-menu a {
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 0 0.4rem;
-    display: inline-flex
-}
-
-.menu {
+#menu {
     list-style: none;
     word-break: keep-all;
     overflow-x: auto;
     white-space: nowrap;
-    column-gap: var(--gap);
 }
 
-.menu a {
+#menu li + li {
+    margin-inline-start: var(--gap);
+}
+
+#menu a {
     font-size: 16px;
 }
 
-.menu .active {
+#menu .active {
     font-weight: 500;
-    text-decoration: underline;
-    text-underline-offset: 0.3rem;
-    text-decoration-thickness: 2px;
+    border-bottom: 2px solid currentColor;
+}
+
+.lang-switch li,
+.lang-switch ul,
+.logo-switches {
+    display: inline-flex;
+    margin: auto 4px;
+}
+
+.lang-switch {
+    display: flex;
+    flex-wrap: inherit;
+}
+
+.lang-switch a {
+    margin: auto 3px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.logo-switches {
+    flex-wrap: inherit;
 }
