@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guvenlik Araclari | CyberSec Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:32px 16px}
+.container{max-width:960px;margin:0 auto}
+.header{text-align:center;margin-bottom:48px}
+h1{font-size:32px;color:#fff;margin-bottom:10px}
+.sub{color:#8b949e;font-size:15px;max-width:500px;margin:0 auto}
+.badge{display:inline-block;background:#21262d;border:1px solid #30363d;border-radius:20px;padding:4px 14px;font-size:12px;color:#8b949e;margin:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.tool-card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;text-decoration:none;color:inherit;transition:all 0.2s;display:block}
+.tool-card:hover{border-color:#58a6ff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.tool-icon{font-size:32px;margin-bottom:14px}
+.tool-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.tool-desc{font-size:13px;color:#8b949e;line-height:1.6;margin-bottom:14px}
+.tool-tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11px;padding:2px 8px;border-radius:12px;background:#21262d;border:1px solid #30363d;color:#8b949e}
+.section-title{font-size:13px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid #21262d}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Guvenlik Araclari</h1>
+    <p class="sub">Tarayicinizda calisan ucretsiz siber guvenlik araclari. Hicbir veri sunucuya gonderilmez.</p>
+    <div style="margin-top:16px">
+      <span class="badge">Tarayici Tabanli</span>
+      <span class="badge">Ucretsiz</span>
+      <span class="badge">Gizlilik Odakli</span>
+      <span class="badge">6 Arac</span>
+    </div>
+  </div>
+
+  <div class="section-title">Analiz Araclari</div>
+  <div class="grid">
+    <a class="tool-card" href="/tools/phishing-analyzer.html">
+      <div class="tool-icon">🎣</div>
+      <div class="tool-name">Phishing Analyzer</div>
+      <div class="tool-desc">URL ve e-posta iceriklerini phishing isaretleri acisindan analiz eder. 8 farkli kontrol, risk skoru ve detayli rapor.</div>
+      <div class="tool-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">Risk Skoru</span></div>
+    </a>
+    <a class="tool-card" href="/tools/hash-identifier.html">
+      <div class="tool-icon">🔎</div>
+      <div class="tool-name">Hash Identifier</div>
+      <div class="tool-desc">Hash degerini yapistir, hangi algoritmadan uretildigini otomatik tanimla. MD5, SHA ailesi, bcrypt, NTLM ve daha fazlasi.</div>
+      <div class="tool-tags"><span class="tag">MD5</span><span class="tag">SHA</span><span class="tag">NTLM</span><span class="tag">bcrypt</span></div>
+    </a>
+    <a class="tool-card" href="/tools/ip-lookup.html">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">IP Lookup</div>
+      <div class="tool-desc">IP adresi veya domain icin konum, ISP, ASN ve ag bilgilerini goruntule. Kendi IP adresini de ogrenebilirsin.</div>
+      <div class="tool-tags"><span class="tag">Konum</span><span class="tag">ISP</span><span class="tag">ASN</span><span class="tag">WHOIS</span></div>
+    </a>
+  </div>
+
+  <div class="section-title">Kriptografi Araclari</div>
+  <div class="grid">
+    <a class="tool-card" href="/tools/crypto-lab.html">
+      <div class="tool-icon">🔐</div>
+      <div class="tool-name">Crypto Lab</div>
+      <div class="tool-desc">Base64, SHA/MD5 hash, Caesar cipher, Hex/Binary, ROT13/47, URL encode ve Morse kodu araclari tek sayfada.</div>
+      <div class="tool-tags"><span class="tag">Base64</span><span class="tag">Hash</span><span class="tag">Caesar</span><span class="tag">Morse</span></div>
+    </a>
+    <a class="tool-card" href="/tools/crypto-lab.html#hex">
+      <div class="tool-icon">🔢</div>
+      <div class="tool-name">Hex / Binary Converter</div>
+      <div class="tool-desc">Metin, hexadecimal, binary ve octal formatlar arasinda donusum. CTF sorularinda cok yaygin kullanilir.</div>
+      <div class="tool-tags"><span class="tag">Hex</span><span class="tag">Binary</span><span class="tag">Octal</span><span class="tag">ASCII</span></div>
+    </a>
+    <a class="tool-card" href="/tools/crypto-lab.html#caesar">
+      <div class="tool-icon">🏛️</div>
+      <div class="tool-name">Caesar / ROT Solver</div>
+      <div class="tool-desc">Caesar cipher ve ROT varyantlarini coz. Brute force ile 1-25 arasi tum kaydiralari tek tiklada dene.</div>
+      <div class="tool-tags"><span class="tag">Caesar</span><span class="tag">ROT13</span><span class="tag">Brute Force</span></div>
+    </a>
+  </div>
+</div>
+</body>
+</html>

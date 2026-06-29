@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Lab | CyberSec Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:32px 16px}
+.container{max-width:860px;margin:0 auto}
+.header{text-align:center;margin-bottom:36px}
+.header h1{font-size:28px;color:#58a6ff;margin-bottom:8px}
+.header p{color:#8b949e;font-size:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.tab{padding:8px 18px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s}
+.tab.active{background:#1f6feb;border-color:#388bfd;color:#fff}
+.tab:hover:not(.active){color:#c9d1d9;border-color:#58a6ff}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;margin-bottom:16px}
+textarea,input[type=text],input[type=number]{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;font-family:monospace;font-size:13px;padding:12px;outline:none;transition:border-color 0.2s;margin-bottom:12px}
+textarea{min-height:100px;resize:vertical}
+textarea:focus,input:focus{border-color:#58a6ff}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+button{border:none;border-radius:8px;padding:9px 18px;font-size:13px;cursor:pointer;font-weight:500;transition:all 0.2s}
+.btn-p{background:#238636;color:#fff}.btn-p:hover{background:#2ea043}
+.btn-s{background:#21262d;color:#c9d1d9;border:1px solid #30363d}.btn-s:hover{background:#30363d}
+.btn-w{background:#9a3b1b;color:#fff}.btn-w:hover{background:#b44820}
+.output{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;font-family:monospace;font-size:13px;color:#3fb950;min-height:70px;word-break:break-all;white-space:pre-wrap;margin-top:4px}
+.output.error{color:#f85149}
+.info{font-size:12px;color:#8b949e;line-height:1.7;padding:10px 14px;background:#0d1117;border-left:3px solid #388bfd;border-radius:4px;margin-bottom:16px}
+label{font-size:13px;color:#8b949e;display:block;margin-bottom:6px}
+.hash-item{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.hash-algo{font-size:11px;color:#8b949e;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.hash-val{font-family:monospace;font-size:12px;color:#3fb950;word-break:break-all}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.row label{white-space:nowrap;margin:0}
+.copy-hash{font-size:11px;padding:2px 8px;float:right}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Crypto Lab</h1>
+    <p>Sifreleme, kodlama ve hash araclari — tamamen tarayicinizda calisir</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="sw('base64',this)">Base64</div>
+    <div class="tab" onclick="sw('hash',this)">Hash</div>
+    <div class="tab" onclick="sw('caesar',this)">Caesar</div>
+    <div class="tab" onclick="sw('hex',this)">Hex / Binary</div>
+    <div class="tab" onclick="sw('rot',this)">ROT13/47</div>
+    <div class="tab" onclick="sw('url',this)">URL Encode</div>
+    <div class="tab" onclick="sw('morse',this)">Morse</div>
+  </div>
+
+  <!-- BASE64 -->
+  <div class="panel active" id="panel-base64">
+    <div class="card">
+      <div class="info">Base64 binary veriyi ASCII metne ceviren kodlama yontemidir. Sifreleme degildir. JWT tokenlar, e-posta ekleri ve web'de yaygin kullanilir.</div>
+      <label>Metin</label>
+      <textarea id="b64-in" placeholder="Encode veya decode etmek istedigin metin..."></textarea>
+      <div class="btn-row">
+        <button class="btn-p" onclick="b64e()">Encode →</button>
+        <button class="btn-s" onclick="b64d()">← Decode</button>
+        <button class="btn-s" onclick="swapB64()">Sonucu yukari al</button>
+      </div>
+      <label>Sonuc</label>
+      <div class="output" id="b64-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+
+  <!-- HASH -->
+  <div class="panel" id="panel-hash">
+    <div class="card">
+      <div class="info">Hash fonksiyonlari tek yonludur — geri cevrilemez. MD5 ve SHA-1 artik guvenli sayilmaz. Parola saklama icin SHA-256+ veya bcrypt kullanin.</div>
+      <label>Metin</label>
+      <textarea id="hash-in" placeholder="Hash almak istedigin metin..."></textarea>
+      <div class="btn-row">
+        <button class="btn-p" onclick="computeHash()">Tum Hashleri Hesapla</button>
+      </div>
+      <div id="hash-results"></div>
+    </div>
+  </div>
+
+  <!-- CAESAR -->
+  <div class="panel" id="panel-caesar">
+    <div class="card">
+      <div class="info">Caesar sifreleme her harfi alfabe icinde sabit sayida kaydirır. Tarihin ilk sifreleme yontemlerinden. CTF'lerde sik gorunur.</div>
+      <label>Metin</label>
+      <textarea id="cs-in" placeholder="Sifreleme veya cozme yapilacak metin..."></textarea>
+      <div class="row">
+        <label>Kaydirma:</label>
+        <input type="number" id="cs-shift" value="13" min="1" max="25" style="width:80px;margin:0">
+      </div>
+      <div class="btn-row">
+        <button class="btn-p" onclick="cse()">Sifrele →</button>
+        <button class="btn-s" onclick="csd()">← Coz</button>
+        <button class="btn-w" onclick="csbf()">Brute Force (1-25)</button>
+      </div>
+      <div class="output" id="cs-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+
+  <!-- HEX -->
+  <div class="panel" id="panel-hex">
+    <div class="card">
+      <div class="info">Hexadecimal (16'lik sayi sistemi) binary veriyi okunabilir formatta gosterir. Hex editor'lar ve network analizi icin temeldir.</div>
+      <label>Metin</label>
+      <input type="text" id="hex-in" placeholder="Donusturmek istedigin metin veya hex deger...">
+      <div class="btn-row">
+        <button class="btn-p" onclick="toHex()">→ Hex</button>
+        <button class="btn-s" onclick="fromHex()">Hex → Metin</button>
+        <button class="btn-p" onclick="toBin()">→ Binary</button>
+        <button class="btn-s" onclick="fromBin()">Binary → Metin</button>
+        <button class="btn-s" onclick="toOct()">→ Octal</button>
+      </div>
+      <div class="output" id="hex-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+
+  <!-- ROT -->
+  <div class="panel" id="panel-rot">
+    <div class="card">
+      <div class="info">ROT13 harfleri 13 pozisyon kaydirır. ROT47 ise tum ASCII karakterleri 47 pozisyon dondurunur. CTF'lerde cok yaygin.</div>
+      <label>Metin</label>
+      <textarea id="rot-in" placeholder="ROT donusumu yapilacak metin..."></textarea>
+      <div class="btn-row">
+        <button class="btn-p" onclick="rot13()">ROT13</button>
+        <button class="btn-s" onclick="rot47()">ROT47</button>
+        <button class="btn-s" onclick="rot18()">ROT18</button>
+      </div>
+      <div class="output" id="rot-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+
+  <!-- URL ENCODE -->
+  <div class="panel" id="panel-url">
+    <div class="card">
+      <div class="info">URL encoding ozel karakterleri %XX formatina donusturur. Web uygulamalari ve HTTP isteklerinde kritik oneme sahiptir.</div>
+      <label>Metin</label>
+      <textarea id="url-in" placeholder="URL encode veya decode edilecek metin..."></textarea>
+      <div class="btn-row">
+        <button class="btn-p" onclick="urlEnc()">URL Encode →</button>
+        <button class="btn-s" onclick="urlDec()">← URL Decode</button>
+        <button class="btn-p" onclick="urlEncFull()">Tam Encode →</button>
+      </div>
+      <div class="output" id="url-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+
+  <!-- MORSE -->
+  <div class="panel" id="panel-morse">
+    <div class="card">
+      <div class="info">Morse kodu her harfi nokta (.) ve tire (-) kombinasyonlariyla temsil eder. CTF forensics ve steganografi sorularinda karsınıza cıkabilir.</div>
+      <label>Metin</label>
+      <textarea id="morse-in" placeholder="Morse'a cevrilecek metin veya morse kodu..."></textarea>
+      <div class="btn-row">
+        <button class="btn-p" onclick="toMorse()">→ Morse</button>
+        <button class="btn-s" onclick="fromMorse()">Morse → Metin</button>
+      </div>
+      <div class="output" id="morse-out">Sonuc burada gorunecek</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function sw(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// Base64
+function b64e(){try{document.getElementById('b64-out').textContent=btoa(unescape(encodeURIComponent(document.getElementById('b64-in').value)));document.getElementById('b64-out').className='output';}catch(e){document.getElementById('b64-out').textContent='Hata: '+e.message;document.getElementById('b64-out').className='output error';}}
+function b64d(){try{document.getElementById('b64-out').textContent=decodeURIComponent(escape(atob(document.getElementById('b64-in').value.trim())));document.getElementById('b64-out').className='output';}catch(e){document.getElementById('b64-out').textContent='Gecersiz Base64';document.getElementById('b64-out').className='output error';}}
+function swapB64(){document.getElementById('b64-in').value=document.getElementById('b64-out').textContent;}
+
+// Hash
+async function computeHash(){
+  const text=document.getElementById('hash-in').value;
+  const enc=new TextEncoder();
+  const data=enc.encode(text);
+  const algos=['SHA-1','SHA-256','SHA-384','SHA-512'];
+  const div=document.getElementById('hash-results');
+  div.innerHTML='<div style="color:#8b949e;font-size:13px;margin-bottom:10px">Hesaplaniyor...</div>';
+  let html='';
+  for(const algo of algos){
+    const buf=await crypto.subtle.digest(algo,data);
+    const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    html+=`<div class="hash-item"><div class="hash-algo">${algo} <button class="btn-s copy-hash" onclick="navigator.clipboard.writeText('${hex}')">Kopyala</button></div><div class="hash-val">${hex}</div></div>`;
+  }
+  div.innerHTML=html;
+}
+
+// Caesar
+function csShift(t,n,d){const s=d?(26-(n%26)):n;return t.split('').map(c=>{if(/[a-z]/.test(c))return String.fromCharCode((c.charCodeAt(0)-97+s)%26+97);if(/[A-Z]/.test(c))return String.fromCharCode((c.charCodeAt(0)-65+s)%26+65);return c;}).join('');}
+function cse(){document.getElementById('cs-out').textContent=csShift(document.getElementById('cs-in').value,parseInt(document.getElementById('cs-shift').value),false);document.getElementById('cs-out').className='output';}
+function csd(){document.getElementById('cs-out').textContent=csShift(document.getElementById('cs-in').value,parseInt(document.getElementById('cs-shift').value),true);document.getElementById('cs-out').className='output';}
+function csbf(){const t=document.getElementById('cs-in').value;let o='';for(let i=1;i<=25;i++)o+=`Shift ${String(i).padStart(2,' ')}: ${csShift(t,i,false)}\n`;document.getElementById('cs-out').textContent=o;document.getElementById('cs-out').className='output';}
+
+// Hex
+function toHex(){document.getElementById('hex-out').textContent=document.getElementById('hex-in').value.split('').map(c=>c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ');document.getElementById('hex-out').className='output';}
+function fromHex(){try{document.getElementById('hex-out').textContent=document.getElementById('hex-in').value.trim().split(/\s+/).map(h=>String.fromCharCode(parseInt(h,16))).join('');document.getElementById('hex-out').className='output';}catch(e){document.getElementById('hex-out').textContent='Gecersiz hex';document.getElementById('hex-out').className='output error';}}
+function toBin(){document.getElementById('hex-out').textContent=document.getElementById('hex-in').value.split('').map(c=>c.charCodeAt(0).toString(2).padStart(8,'0')).join(' ');document.getElementById('hex-out').className='output';}
+function fromBin(){try{document.getElementById('hex-out').textContent=document.getElementById('hex-in').value.trim().split(/\s+/).map(b=>String.fromCharCode(parseInt(b,2))).join('');document.getElementById('hex-out').className='output';}catch(e){document.getElementById('hex-out').textContent='Gecersiz binary';document.getElementById('hex-out').className='output error';}}
+function toOct(){document.getElementById('hex-out').textContent=document.getElementById('hex-in').value.split('').map(c=>c.charCodeAt(0).toString(8)).join(' ');document.getElementById('hex-out').className='output';}
+
+// ROT
+function rot13(){document.getElementById('rot-out').textContent=document.getElementById('rot-in').value.replace(/[a-zA-Z]/g,c=>{const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b);});document.getElementById('rot-out').className='output';}
+function rot47(){document.getElementById('rot-out').textContent=document.getElementById('rot-in').value.replace(/[!-~]/g,c=>String.fromCharCode(33+(c.charCodeAt(0)-33+47)%94));document.getElementById('rot-out').className='output';}
+function rot18(){const t=document.getElementById('rot-in').value;document.getElementById('rot-out').textContent=t.replace(/[a-zA-Z0-9]/g,c=>{if(/[0-9]/.test(c))return String.fromCharCode((c.charCodeAt(0)-48+5)%10+48);const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b);});document.getElementById('rot-out').className='output';}
+
+// URL
+function urlEnc(){document.getElementById('url-out').textContent=encodeURIComponent(document.getElementById('url-in').value);document.getElementById('url-out').className='output';}
+function urlDec(){try{document.getElementById('url-out').textContent=decodeURIComponent(document.getElementById('url-in').value);document.getElementById('url-out').className='output';}catch(e){document.getElementById('url-out').textContent='Gecersiz URL encoding';document.getElementById('url-out').className='output error';}}
+function urlEncFull(){document.getElementById('url-out').textContent=document.getElementById('url-in').value.split('').map(c=>encodeURIComponent(c)).join('');document.getElementById('url-out').className='output';}
+
+// Morse
+const M={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',0:'-----',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.'};
+const MR=Object.fromEntries(Object.entries(M).map(([k,v])=>[v,k]));
+function toMorse(){document.getElementById('morse-out').textContent=document.getElementById('morse-in').value.toUpperCase().split('').map(c=>c===' '?'/':(M[c]||'?')).join(' ');document.getElementById('morse-out').className='output';}
+function fromMorse(){document.getElementById('morse-out').textContent=document.getElementById('morse-in').value.split(' ').map(c=>c==='/'?' ':(MR[c]||'?')).join('');document.getElementById('morse-out').className='output';}
+</script>
+</body>
+</html>

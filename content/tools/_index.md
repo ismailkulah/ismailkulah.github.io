@@ -1,9 +1,7 @@
 ---
-title: "Güvenlik Araçları"
-description: "Tarayıcıda çalışan ücretsiz siber güvenlik araçları"
+title: "Guvenlik Araclari"
+description: "Tarayicida calisan ucretsiz siber guvenlik araclari - hicbir veri sunucuya gonderilmez"
 ---
 
-Aşağıdaki araçlar tamamen tarayıcınızda çalışır, hiçbir veri sunucuya gönderilmez.
+Asagidaki araclar tamamen **tarayicinizda** calisir. Hicbir veri disariya gonderilmez.
 
-- [🎣 Phishing Analyzer](/tools/phishing-analyzer) — URL ve e-posta analizi
-- [🔐 Crypto Lab](/tools/crypto-lab) — Hash, encode/decode, şifre araçları

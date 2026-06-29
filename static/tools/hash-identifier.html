@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Identifier | CyberSec Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:32px 16px}
+.container{max-width:760px;margin:0 auto}
+.header{text-align:center;margin-bottom:36px}
+h1{font-size:28px;color:#58a6ff;margin-bottom:8px}
+.sub{color:#8b949e;font-size:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;margin-bottom:16px}
+input{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;font-family:monospace;font-size:13px;padding:12px;outline:none;margin-bottom:12px}
+input:focus{border-color:#58a6ff}
+button{background:#238636;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;cursor:pointer;font-weight:500}
+button:hover{background:#2ea043}
+.result{margin-top:20px;display:none}
+.match{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;margin-bottom:10px}
+.match.primary{border-color:#238636;background:rgba(35,134,54,0.08)}
+.match-name{font-size:15px;font-weight:600;color:#3fb950;margin-bottom:4px}
+.match-info{font-size:13px;color:#8b949e;line-height:1.6}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;margin:2px;background:#21262d;border:1px solid #30363d;color:#8b949e}
+.no-match{color:#f85149;font-size:14px;padding:16px;text-align:center}
+label{font-size:13px;color:#8b949e;display:block;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Hash Identifier</h1>
+    <p class="sub">Hash degerini yapistir, turunu otomatik tanimla</p>
+  </div>
+  <div class="card">
+    <label>Hash Degeri</label>
+    <input id="hash-in" placeholder="Ornek: 5f4dcc3b5aa765d61d8327deb882cf99" oninput="identify()">
+    <div id="len" style="font-size:12px;color:#8b949e;margin-top:-8px">Uzunluk: 0 karakter</div>
+  </div>
+  <div class="result" id="result"></div>
+</div>
+<script>
+const hashTypes = [
+  { name:'MD5', len:32, hex:true, desc:'En yaygin hash. Parola crackleme ve dosya butunlugu. Artik guvenli degil.', uses:['Eski sistemler','Dosya MD5','CTF'], color:'#d29922' },
+  { name:'SHA-1', len:40, hex:true, desc:'MD5\'ten guclu ama 2017\'de Google tarafindan kiruldi.', uses:['Git commit ID','SSL eski sertifikalar','CTF'], color:'#d29922' },
+  { name:'SHA-256', len:64, hex:true, desc:'Gunumuzde standart. Bitcoin, TLS 1.3, parola hashleme icin yaygin.', uses:['Bitcoin','TLS','Linux shadow dosyasi'], color:'#3fb950' },
+  { name:'SHA-384', len:96, hex:true, desc:'SHA-2 ailesinin 384 bit versiyonu.', uses:['TLS sertifikalari','Yuksek guvenlik sistemleri'], color:'#3fb950' },
+  { name:'SHA-512', len:128, hex:true, desc:'SHA-2\'nin en guclu versiyonu. 64-bit sistemlerde SHA-256\'dan hizli.', uses:['Linux /etc/shadow','Yuksek guvenlik'], color:'#3fb950' },
+  { name:'SHA3-256', len:64, hex:true, desc:'Yeni nesil SHA-3 standardi. SHA-2\'den farkli mimariye sahip.', uses:['Modern sistemler','Kripto'], color:'#58a6ff' },
+  { name:'NTLM', len:32, hex:true, desc:'Windows parola hash formati. Genellikle MD5 ile karistirılir.', uses:['Windows kimlik dogrulama','Active Directory'], color:'#d29922' },
+  { name:'bcrypt', len:60, hex:false, prefix:'$2', desc:'Parola saklama icin tasarlanmis. Yavaş olmasi bilerek yapilmistir.', uses:['Web uygulamalari','PHP','Node.js'], color:'#3fb950' },
+  { name:'MySQL 4.x', len:16, hex:true, desc:'Eski MySQL hash formati. Cok zayif.', uses:['Eski MySQL veritabanlari'], color:'#f85149' },
+  { name:'MySQL 5.x', len:40, hex:true, prefix:'*', desc:'MySQL \'PASSWORD()\' fonksiyonu ciktisi.', uses:['MySQL kullanici tablosu'], color:'#d29922' },
+  { name:'MD4', len:32, hex:true, desc:'MD5\'in onceki versiyonu. NTLM\'de kullanilir.', uses:['Windows eski sistemler'], color:'#f85149' },
+  { name:'CRC32', len:8, hex:true, desc:'Hata tespiti icin kullanilir, kriptografik degil.', uses:['Dosya butunlugu','ZIP'], color:'#8b949e' },
+];
+
+function identify() {
+  const val = document.getElementById('hash-in').value.trim();
+  document.getElementById('len').textContent = `Uzunluk: ${val.length} karakter`;
+  if (!val) { document.getElementById('result').style.display='none'; return; }
+  
+  const isHex = /^[0-9a-fA-F]+$/.test(val);
+  const matches = [];
+  
+  hashTypes.forEach(h => {
+    let score = 0;
+    if (h.hex && isHex && val.length === h.len) score += 90;
+    if (!h.hex && h.prefix && val.startsWith(h.prefix)) score += 90;
+    if (h.hex && isHex && val.length === h.len) score = 95;
+    if (score > 0) matches.push({...h, score});
+  });
+
+  matches.sort((a,b) => b.score - a.score);
+  const r = document.getElementById('result');
+  
+  if (!matches.length) {
+    r.innerHTML = `<div class="no-match">Bilinen bir hash formati tanimlanamdı.<br><small style="color:#8b949e">Uzunluk: ${val.length} — ${isHex?'Gecerli hex':'Hex degil'}</small></div>`;
+  } else {
+    r.innerHTML = matches.slice(0,3).map((m,i) => `
+      <div class="match ${i===0?'primary':''}">
+        <div class="match-name" style="color:${m.color}">${i===0?'✓ ':''}${m.name} ${i===0?'<span style="font-size:11px;font-weight:400;color:#8b949e">(En olasi)</span>':''}</div>
+        <div class="match-info">${m.desc}</div>
+        <div style="margin-top:8px">${m.uses.map(u=>`<span class="tag">${u}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+  r.style.display = 'block';
+}
+</script>
+</body>
+</html>

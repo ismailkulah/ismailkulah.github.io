@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Lookup | CyberSec Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:32px 16px}
+.container{max-width:760px;margin:0 auto}
+.header{text-align:center;margin-bottom:36px}
+h1{font-size:28px;color:#58a6ff;margin-bottom:8px}
+.sub{color:#8b949e;font-size:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;margin-bottom:16px}
+.input-row{display:flex;gap:10px}
+input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;font-family:monospace;font-size:13px;padding:12px;outline:none}
+input:focus{border-color:#58a6ff}
+button{background:#238636;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;cursor:pointer;font-weight:500;white-space:nowrap}
+button:hover{background:#2ea043}
+.btn-my{background:#1f6feb;margin-top:10px;width:100%}
+.btn-my:hover{background:#388bfd}
+.result{margin-top:20px;display:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px}
+.field-label{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.field-val{font-size:14px;color:#c9d1d9;font-weight:500}
+.loading{text-align:center;color:#8b949e;padding:20px}
+.error{color:#f85149;text-align:center;padding:20px}
+.flag{font-size:24px;margin-right:8px}
+.ip-title{font-size:20px;font-weight:600;color:#58a6ff;margin-bottom:16px;display:flex;align-items:center}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>IP Lookup</h1>
+    <p class="sub">IP adresi hakkinda konum ve ag bilgilerini goruntule</p>
+  </div>
+  <div class="card">
+    <div class="input-row">
+      <input id="ip-in" placeholder="Ornek: 8.8.8.8 veya domain" onkeydown="if(event.key==='Enter')lookup()">
+      <button onclick="lookup()">Sorgula</button>
+    </div>
+    <button class="btn-my" onclick="myIP()">Kendi IP Adresimi Gor</button>
+  </div>
+  <div class="result" id="result"></div>
+</div>
+<script>
+async function lookup(ip) {
+  const val = ip || document.getElementById('ip-in').value.trim();
+  if (!val && !ip) return;
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.innerHTML = '<div class="loading">Sorgulanıyor...</div>';
+  try {
+    const res = await fetch(`https://ipapi.co/${val}/json/`);
+    const d = await res.json();
+    if (d.error) throw new Error(d.reason);
+    r.innerHTML = `
+      <div class="card">
+        <div class="ip-title"><span class="flag">${d.country_flag_emoji||'🌐'}</span>${d.ip}</div>
+        <div class="grid">
+          <div class="field"><div class="field-label">Ulke</div><div class="field-val">${d.country_name||'-'}</div></div>
+          <div class="field"><div class="field-label">Sehir</div><div class="field-val">${d.city||'-'}</div></div>
+          <div class="field"><div class="field-label">Bolge</div><div class="field-val">${d.region||'-'}</div></div>
+          <div class="field"><div class="field-label">Zaman Dilimi</div><div class="field-val">${d.timezone||'-'}</div></div>
+          <div class="field"><div class="field-label">ISP / Org</div><div class="field-val">${d.org||'-'}</div></div>
+          <div class="field"><div class="field-label">ASN</div><div class="field-val">${d.asn||'-'}</div></div>
+          <div class="field"><div class="field-label">Enlem</div><div class="field-val">${d.latitude||'-'}</div></div>
+          <div class="field"><div class="field-label">Boylam</div><div class="field-val">${d.longitude||'-'}</div></div>
+        </div>
+      </div>`;
+  } catch(e) {
+    r.innerHTML = `<div class="card"><div class="error">Hata: ${e.message}</div></div>`;
+  }
+}
+async function myIP() {
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.innerHTML = '<div class="loading">IP adresiniz aliniyor...</div>';
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const d = await res.json();
+    document.getElementById('ip-in').value = d.ip;
+    r.innerHTML = `
+      <div class="card">
+        <div class="ip-title"><span class="flag">${d.country_flag_emoji||'🌐'}</span>${d.ip} <span style="font-size:12px;color:#8b949e;margin-left:8px">(Sizin IP'niz)</span></div>
+        <div class="grid">
+          <div class="field"><div class="field-label">Ulke</div><div class="field-val">${d.country_name||'-'}</div></div>
+          <div class="field"><div class="field-label">Sehir</div><div class="field-val">${d.city||'-'}</div></div>
+          <div class="field"><div class="field-label">ISP</div><div class="field-val">${d.org||'-'}</div></div>
+          <div class="field"><div class="field-label">Zaman Dilimi</div><div class="field-val">${d.timezone||'-'}</div></div>
+        </div>
+      </div>`;
+  } catch(e) {
+    r.innerHTML = `<div class="card"><div class="error">IP alinamadi</div></div>`;
+  }
+}
+</script>
+</body>
+</html>

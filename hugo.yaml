@@ -1,25 +1,27 @@
 baseURL: "https://ismailkulah.github.io/"
-languageCode: "en"
-title: "CyberSec Lab"
+languageCode: "tr"
+title: "İsmail Külah | CyberSec Lab"
 theme: "PaperMod"
+
 pagination:
   pagerSize: 6
 
 params:
   env: production
-  title: "CyberSec Lab"
-  description: "Cybersecurity tools, forensic analysis and CTF writeups"
-  author: "ismailkulah"
+  title: "İsmail Külah | CyberSec Lab"
+  description: "Siber guvenlik uzmani, CTF oyuncusu, forensic analist"
+  author: "Ismail Kulah"
   defaultTheme: dark
   ShowReadingTime: true
   ShowShareButtons: false
   ShowPostNavLinks: true
   ShowBreadCrumbs: true
   ShowCodeCopyButtons: true
+  ShowFullTextinRSS: true
 
   homeInfoParams:
-    Title: "CyberSec Lab"
-    Content: "Cybersecurity tools, forensic analysis, CTF writeups and lab environments."
+    Title: "Ismail Kulah"
+    Content: "Siber Guvenlik Uzmani | CTF Oyuncusu | Forensic Analist"
 
   socialIcons:
     - name: github
@@ -27,20 +29,35 @@ params:
     - name: linkedin
       url: "https://linkedin.com/in/ismailkulah"
 
+  profileMode:
+    enabled: false
+
+  label:
+    text: "CyberSec Lab"
+
 menu:
   main:
+    - identifier: tools
+      name: "Araclar"
+      url: /tools/
+      weight: 10
     - identifier: blog
       name: "Blog"
       url: /blog/
-      weight: 10
-    - identifier: writeups
-      name: "Writeups"
-      url: /writeups/
       weight: 20
-    - identifier: about
-      name: "About"
-      url: /about/
+    - identifier: writeups
+      name: "Write-ups"
+      url: /writeups/
       weight: 30
+    - identifier: about
+      name: "Hakkimda"
+      url: /about/
+      weight: 40
+
+taxonomies:
+  category: categories
+  tag: tags
+  series: series
 
 outputs:
   home:

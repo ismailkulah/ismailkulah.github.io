@@ -1,26 +1,50 @@
 ---
-title: "Hakkımda"
+title: "Hakkimda"
 date: 2024-01-01
 layout: "page"
 ---
 
-## Merhaba, ben [Adın] 👋
+## Ismail Kulah
 
-Siber güvenlik alanında kendimi geliştiren, CTF yarışmalarına katılan ve güvenlik araştırmaları yapan biriyim.
-
-### İlgi Alanlarım
-- 🔍 Digital Forensics
-- 🎣 Phishing & Social Engineering
-- 🔐 Kriptografi
-- 🚩 CTF (Capture The Flag)
-
-### Sertifikalar & Hedefler
-- [ ] CompTIA Security+
-- [ ] CEH (Certified Ethical Hacker)
-- [ ] OSCP
-
-### Kullandığım Araçlar
-Wireshark, Burp Suite, Nmap, Metasploit, Autopsy, Volatility
+Siber guvenlik alaninda profesyonel olarak calisan, CTF yarismalarina katilan ve dijital adli bilisim uzerine arastirmalar yapan bir guvenlik uzmani.
 
 ---
-*Bu site öğrenme sürecimi belgelemek ve topluluğa katkı sağlamak amacıyla oluşturulmuştur.*
+
+### Uzmanlik Alanlari
+
+| Alan | Detay |
+|------|-------|
+| Digital Forensics | Disk, memory ve network adli analizi |
+| Threat Hunting | Siber tehdit avciligi ve IOC analizi |
+| Penetration Testing | Web, network ve uygulama testleri |
+| CTF | HackTheBox, TryHackMe, PicoCTF |
+| Malware Analysis | Statik ve dinamik zarali yazilim analizi |
+
+---
+
+### Kullandigim Araclar
+
+**Forensics:** Autopsy, Volatility, FTK Imager, Wireshark, NetworkMiner
+
+**Pentest:** Burp Suite, Nmap, Metasploit, Gobuster, SQLmap
+
+**SIEM / Blue Team:** Splunk, ELK Stack, Suricata, YARA
+
+**Diger:** Python, Bash, PowerShell, Docker
+
+---
+
+### Sertifikalar ve Hedefler
+
+- [ ] CompTIA Security+
+- [ ] CEH (Certified Ethical Hacker)
+- [ ] OSCP (Offensive Security Certified Professional)
+- [ ] GCFA (GIAC Certified Forensic Analyst)
+
+---
+
+### Iletisim
+
+- **GitHub:** [github.com/ismailkulah](https://github.com/ismailkulah)
+- **LinkedIn:** [linkedin.com/in/ismailkulah](https://linkedin.com/in/ismailkulah)
+
