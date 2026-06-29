@@ -1,6 +1,6 @@
 baseURL: "https://ismailkulah.github.io/"
 languageCode: "tr"
-title: "İsmail Külah | CyberSec Lab"
+title: "Ismail Kulah | CyberSec Lab"
 theme: "PaperMod"
 
 pagination:
@@ -8,7 +8,7 @@ pagination:
 
 params:
   env: production
-  title: "İsmail Külah | CyberSec Lab"
+  title: "Ismail Kulah | CyberSec Lab"
   description: "Siber guvenlik uzmani, CTF oyuncusu, forensic analist"
   author: "Ismail Kulah"
   defaultTheme: dark
@@ -18,6 +18,7 @@ params:
   ShowBreadCrumbs: true
   ShowCodeCopyButtons: true
   ShowFullTextinRSS: true
+  disableSpecial1stPost: false
 
   homeInfoParams:
     Title: "Ismail Kulah"
@@ -28,12 +29,6 @@ params:
       url: "https://github.com/ismailkulah"
     - name: linkedin
       url: "https://linkedin.com/in/ismailkulah"
-
-  profileMode:
-    enabled: false
-
-  label:
-    text: "CyberSec Lab"
 
 menu:
   main:
@@ -57,7 +52,6 @@ menu:
 taxonomies:
   category: categories
   tag: tags
-  series: series
 
 outputs:
   home:

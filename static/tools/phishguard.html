@@ -1,0 +1,3275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishGuard TERMINATOR v11.1 — CYBER-OPS COMMAND</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   OVERLORD v9.0 — INDUSTRIAL BRUTALIST CYBERPUNK-MILITARY
+   Palette: Deep Navy #05080f | Carbon #0a0e1a | CyberGreen #00ff41
+            WarningOrange #ff8c00 | TacticalRed #ff2244
+════════════════════════════════════════════════════════════ */
+:root {
+  --bg:    #030710;
+  --bg1:   #080c16;
+  --bg2:   #080f1e;
+  --bg3:   #0e1526;
+  --bg4:   #141d30;
+  --carbon:#060a12;
+
+  --green:  #00ff88;
+  --green2: #00cc66;
+  --green3: #007a1f;
+  --orange: #ff7a00;
+  --orange2:#cc7000;
+  --red:    #ff2244;
+  --red2:   #cc1133;
+  --cyan:   #00d4ff;
+  --cyan2:  #00b0cc;
+  --violet: #9b59f5;
+  --amber:  #ffad00;
+
+  --t0: #ffffff;
+  --t1: #b8cce0;
+  --t2: #5a7a96;
+  --t3: #2a4060;
+
+  --line:  rgba(0,255,65,.06);
+  --line2: rgba(0,255,65,.14);
+  --lineg: rgba(0,255,65,.04);
+
+  --mono: 'JetBrains Mono', 'Space Mono', monospace;
+  --term: 'JetBrains Mono', monospace;
+  --hud:  'Rajdhani', sans-serif;
+
+  --glow-g:  0 0 20px rgba(0,255,65,.3);
+  --glow-o:  0 0 20px rgba(255,140,0,.3);
+  --glow-r:  0 0 20px rgba(255,34,68,.3);
+  --glow-c:  0 0 20px rgba(0,212,255,.25);
+  --acid:   #b8ff35;
+  --acid2:  #88cc22;
+  --neon:   #00ff88;
+  --flame:  #ff4545;
+  --dm:     'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--term);
+  font-size: 13px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── TACTICAL GRID BACKGROUND ── */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,255,65,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,.028) 1px, transparent 1px),
+    linear-gradient(rgba(0,255,65,.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,.01) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
+}
+/* ── SCANLINE OVERLAY ── */
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+}
+
+/* ── HUD CORNER BRACKETS ── */
+.hud-corner {
+  position:fixed; z-index:1; pointer-events:none;
+  width:40px; height:40px;
+}
+.hud-tl { top:12px; left:12px; border-top:2px solid rgba(0,255,65,.3); border-left:2px solid rgba(0,255,65,.3); }
+.hud-tr { top:12px; right:12px; border-top:2px solid rgba(0,255,65,.3); border-right:2px solid rgba(0,255,65,.3); }
+.hud-bl { bottom:12px; left:12px; border-bottom:2px solid rgba(0,255,65,.15); border-left:2px solid rgba(0,255,65,.15); }
+.hud-br { bottom:12px; right:12px; border-bottom:2px solid rgba(0,255,65,.15); border-right:2px solid rgba(0,255,65,.15); }
+
+/* ── MATRIX RAIN CANVAS ── */
+#matrix-canvas { position:fixed; top:0; left:0; z-index:0; pointer-events:none; opacity:.06; }
+
+.app { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:1.25rem 1.25rem 3rem; }
+
+/* ═══════════════════════════════
+   TOPBAR — COMMAND HEADER
+═══════════════════════════════ */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.85rem 1rem; margin-bottom:1.25rem;
+  background: var(--carbon);
+  border: 1px solid var(--line2);
+  border-top: 2px solid var(--orange);
+  position:relative;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.topbar::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, var(--green), transparent 60%);
+  opacity:.5;
+}
+.logo { display:flex; align-items:center; gap:14px; }
+.logo-emblem { position:relative; width:44px; height:44px; flex-shrink:0; }
+.logo-emblem svg { width:44px; height:44px; }
+.logo-text { }
+.logo-name {
+  font-family:var(--hud); font-weight:700; font-size:22px; letter-spacing:3px;
+  color:var(--t0); line-height:1;
+}
+.logo-name em { font-style:normal; color:var(--green); text-shadow:0 0 14px rgba(0,255,65,.6); }
+.logo-sub {
+  font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:3px;
+  margin-top:3px; text-transform:uppercase;
+}
+.logo-sub span { color:var(--orange); }
+
+.sys-status { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.sys-pill {
+  font-family:var(--mono); font-size:8px; padding:3px 8px;
+  border: 1px solid; display:flex; align-items:center; gap:5px;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+}
+.sp-grn { color:var(--green); border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.05); }
+.sp-org { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.05); }
+.sp-red { color:var(--red); border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.05); }
+.sp-cyn { color:var(--cyan); border-color:rgba(0,229,255,.25); background:rgba(0,229,255,.05); }
+.sp-vio { color:var(--violet); border-color:rgba(155,89,245,.3); background:rgba(155,89,245,.05); }
+.dot { width:5px; height:5px; border-radius:50%; }
+.dot-g { background:var(--green); box-shadow:0 0 6px var(--green); animation:blink 1.6s infinite; }
+.dot-o { background:var(--orange); animation:blink 2.2s .4s infinite; }
+.dot-r { background:var(--red); box-shadow:0 0 6px var(--red); animation:blink 1.2s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.1} }
+
+/* ═══════════════════════════════
+   MODE TABS — TACTICAL
+═══════════════════════════════ */
+.mode-tabs { display:flex; gap:3px; margin-bottom:1rem; }
+.mode-tab {
+  flex:1; padding:.6rem 1rem; font-family:var(--mono); font-size:10px;
+  letter-spacing:3px; text-transform:uppercase; cursor:pointer; border:none;
+  background:var(--bg2); color:var(--t3); transition:all .2s; text-align:center;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  border-bottom:2px solid transparent;
+}
+.mode-tab.active {
+  background:rgba(0,255,65,.08); color:var(--green); font-weight:700;
+  border-bottom-color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4);
+}
+.mode-tab:not(.active):hover { background:var(--bg3); color:var(--t1); }
+.mode-desc {
+  font-family:var(--mono); font-size:9px; color:var(--t3); margin-bottom:1rem;
+  padding:5px 10px; background:var(--bg2); border:1px solid var(--line);
+  border-left:3px solid var(--green);
+}
+.mode-desc span { color:var(--green); }
+
+/* ═══════════════════════════════
+   INPUT SECTION
+═══════════════════════════════ */
+.upload-zone {
+  border: 1px solid var(--line2); background: var(--bg2);
+  padding:1.75rem; text-align:center; cursor:pointer; position:relative;
+  overflow:hidden; margin-bottom:.85rem; transition:all .3s;
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.upload-zone::before {
+  content:''; position:absolute; inset:0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 16px, rgba(0,255,65,.012) 16px, rgba(0,255,65,.012) 32px);
+}
+.upload-zone:hover, .upload-zone.drag {
+  border-color:var(--green); background:rgba(0,255,65,.04);
+  box-shadow: 0 0 30px rgba(0,255,65,.07), inset 0 0 40px rgba(0,255,65,.03);
+}
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; z-index:2; }
+.uz-icon { font-size:24px; margin-bottom:.5rem; display:block; }
+.uz-title { font-family:var(--hud); font-weight:700; font-size:15px; letter-spacing:3px; color:var(--t1); }
+.uz-sub { font-family:var(--mono); font-size:8px; color:var(--t3); margin-top:3px; letter-spacing:2px; }
+.fname-tag {
+  display:inline-flex; align-items:center; gap:5px; margin-top:8px;
+  background:rgba(0,255,65,.08); border:1px solid rgba(0,255,65,.25);
+  padding:3px 10px; font-family:var(--mono); font-size:8px; color:var(--green);
+}
+.sec-label {
+  font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:.4rem; display:flex; align-items:center; gap:8px;
+}
+.sec-label::before { content:'>>'; color:var(--green); opacity:.6; }
+.sec-label::after { content:''; flex:1; height:1px; background:var(--line); }
+
+textarea {
+  width:100%; background:rgba(0,0,0,.5); border: 1px solid var(--line2);
+  padding:.8rem 1rem; color:var(--t1);
+  font-family:var(--term); font-size:11px; resize:vertical;
+  min-height:150px; line-height:1.75; outline:none; transition:border-color .2s;
+}
+textarea:focus { border-color:var(--green); box-shadow:0 0 10px rgba(0,255,65,.08); }
+textarea::placeholder { color:var(--t3); }
+
+.api-label { font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:1px; margin-bottom:3px; }
+.api-input {
+  flex:1; background:rgba(0,0,0,.4); border:1px solid var(--line2);
+  padding:.5rem .8rem; color:var(--t1);
+  font-family:var(--term); font-size:11px; outline:none; transition:border-color .2s; width:100%;
+}
+.api-input:focus { border-color:var(--cyan); }
+.api-input::placeholder { color:var(--t3); }
+.api-row { display:flex; gap:8px; margin-bottom:.65rem; }
+
+.scan-btn {
+  width:100%; margin-top:.75rem; padding:.85rem;
+  background:var(--green); border:none; color:var(--bg);
+  font-family:var(--hud); font-weight:700; font-size:14px; letter-spacing:5px;
+  text-transform:uppercase; cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+  clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+}
+.scan-btn::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg, transparent 50%, rgba(255,255,255,.1)); pointer-events:none; }
+.scan-btn:hover { background:#22ff55; box-shadow:var(--glow-g); transform:translateY(-1px); }
+.scan-btn:disabled { background:var(--bg3); color:var(--t3); cursor:not-allowed; transform:none; box-shadow:none; clip-path:none; }
+
+/* ═══════════════════════════════
+   LOADING — MATRIX SCAN
+═══════════════════════════════ */
+.loading-card {
+  background:var(--bg2); border:1px solid var(--line2);
+  border-top:2px solid var(--green); padding:1.5rem;
+}
+.scan-header {
+  font-family:var(--hud); font-size:18px; font-weight:700; color:var(--green);
+  letter-spacing:4px; margin-bottom:1rem; text-shadow:0 0 16px rgba(0,255,65,.4);
+  display:flex; align-items:center; gap:10px;
+}
+.scan-spinner {
+  width:18px; height:18px; border:2px solid rgba(0,255,65,.2);
+  border-top-color:var(--green); border-radius:50%; animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.lstep { display:flex; align-items:center; gap:10px; padding:3px 0; font-family:var(--term); font-size:10px; color:var(--t3); }
+.lstep.done { color:var(--green2); }
+.lstep.act  { color:var(--orange); }
+.ls-ico { width:14px; text-align:center; flex-shrink:0; }
+.pbar { height:3px; background:rgba(0,255,65,.08); margin-top:1rem; overflow:hidden; position:relative; }
+.pbar::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(0,0,0,.3) 8px,rgba(0,0,0,.3) 9px); }
+.pbar-fill { height:100%; background:linear-gradient(90deg,var(--green3),var(--green),var(--cyan)); transition:width .5s ease; }
+.matrix-stream {
+  font-family:var(--term); font-size:9px; color:var(--green3); letter-spacing:1px;
+  height:30px; overflow:hidden; margin-top:.5rem; opacity:.6;
+  white-space:nowrap; animation:stream 0.12s steps(1) infinite;
+}
+
+/* ═══════════════════════════════
+   ACTION BAR
+═══════════════════════════════ */
+.action-bar { display:flex; gap:6px; margin-bottom:1.25rem; flex-wrap:wrap; align-items:center; }
+.a-btn {
+  padding:.38rem .9rem; font-family:var(--mono); font-size:8px;
+  letter-spacing:2px; text-transform:uppercase;
+  cursor:pointer; border:1px solid; background:transparent; transition:all .2s;
+  display:flex; align-items:center; gap:5px;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+}
+.a-btn:hover { transform:translateY(-1px); }
+.ab-reset { color:var(--t2); border-color:var(--line2); }
+.ab-reset:hover { color:var(--t1); border-color:var(--t2); }
+.ab-copy  { color:var(--cyan); border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.04); }
+.ab-copy:hover { box-shadow:var(--glow-c); }
+.ab-md    { color:var(--green); border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.04); }
+.ab-md:hover { box-shadow:var(--glow-g); }
+.ab-pdf   { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.04); }
+.ab-pdf:hover { box-shadow:var(--glow-o); }
+
+/* ═══════════════════════════════
+   SCORE SECTION
+═══════════════════════════════ */
+.score-section { display:grid; grid-template-columns:220px 1fr; gap:1rem; margin-bottom:1rem; }
+.score-card {
+  background:var(--bg2); border:1px solid var(--line2);
+  border-top:2px solid var(--green);
+  padding:1.25rem; text-align:center; position:relative; overflow:hidden;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%);
+}
+.score-ring { position:relative; width:145px; height:145px; margin:0 auto .65rem; }
+.score-val { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.score-num { font-family:var(--mono); font-size:48px; font-weight:700; line-height:1; }
+.score-of  { font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:3px; margin-top:2px; }
+.verdict-tag {
+  display:inline-block; padding:4px 14px;
+  font-family:var(--hud); font-size:13px; font-weight:700; letter-spacing:3px;
+  margin-top:.6rem; border:1px solid; text-transform:uppercase;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+}
+.vt-safe { color:var(--green);  border-color:var(--green);  background:rgba(0,255,65,.07); }
+.vt-susp { color:var(--orange); border-color:var(--orange); background:rgba(255,140,0,.07); animation:pulse-o 2.5s infinite; }
+.vt-bad  { color:var(--red);    border-color:var(--red);    background:rgba(255,34,68,.07); animation:pulse-r 2s infinite; }
+@keyframes pulse-o { 0%,100%{box-shadow:0 0 5px rgba(255,140,0,.1)}50%{box-shadow:0 0 20px rgba(255,140,0,.4)} }
+@keyframes pulse-r { 0%,100%{box-shadow:0 0 5px rgba(255,34,68,.15)}50%{box-shadow:0 0 24px rgba(255,34,68,.5)} }
+.score-meta { font-family:var(--mono); font-size:8px; color:var(--t3); margin-top:.5rem; }
+
+/* findings card */
+.findings-card {
+  background:var(--bg2); border:1px solid var(--line2);
+  border-left:3px solid var(--green);
+  padding:1.25rem; position:relative; overflow:hidden;
+}
+.card-title {
+  font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:2.5px;
+  text-transform:uppercase; margin-bottom:.8rem; display:flex; align-items:center; gap:6px;
+}
+.card-title::before { content:'[>]'; color:var(--green); }
+
+.fi { display:flex; align-items:flex-start; gap:7px; padding:5px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.fi:last-child { border-bottom:none; }
+.fi-lv { flex-shrink:0; padding:1px 6px; font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:.5px; border:1px solid; }
+.lv-H { color:#ff8099; border-color:rgba(255,34,68,.4); background:rgba(255,34,68,.1); }
+.lv-M { color:#ffb840; border-color:rgba(255,140,0,.4); background:rgba(255,140,0,.1); }
+.lv-L { color:#66ff88; border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.07); }
+.lv-I { color:#66e8ff; border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.07); }
+.fi-text { flex:1; color:var(--t1); line-height:1.4; }
+.mitre { font-family:var(--mono); font-size:8px; padding:1px 5px; background:rgba(155,89,245,.1); color:#c09aff; border:1px solid rgba(155,89,245,.25); flex-shrink:0; white-space:nowrap; }
+
+/* ═══════════════════════════════
+   PANELS GRID
+═══════════════════════════════ */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; margin-bottom:.85rem; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.85rem; margin-bottom:.85rem; }
+.col-span { grid-column:1/-1; }
+
+.panel {
+  background:var(--bg2); border:1px solid var(--line2);
+  padding:1.1rem; position:relative; overflow:visible;
+  border-top:1px solid rgba(0,255,65,.18);
+}
+.panel::before {
+  content:''; position:absolute; top:0; left:0; width:30px; height:2px;
+  background:var(--green); opacity:.5;
+}
+
+/* ═══════════════════════════════
+   AUTH GRID
+═══════════════════════════════ */
+.auth-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.auth-cell {
+  background:var(--bg3); border:1px solid var(--line); padding:10px; text-align:center;
+  position:relative; overflow:hidden;
+}
+.auth-name { font-family:var(--mono); font-size:8px; color:var(--t3); letter-spacing:2px; margin-bottom:6px; }
+.auth-status { font-family:var(--mono); font-size:16px; font-weight:700; }
+.as-pass { color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4); }
+.as-fail { color:var(--red);   text-shadow:0 0 10px rgba(255,34,68,.4); }
+.as-none { color:var(--orange); }
+.auth-det  { font-family:var(--mono); font-size:8px; color:var(--t3); margin-top:3px; }
+.auth-ov { display:inline-block; font-family:var(--mono); font-size:7px; padding:1px 5px; background:rgba(255,140,0,.1); border:1px solid rgba(255,140,0,.3); color:var(--orange); margin-top:4px; }
+
+/* ═══════════════════════════════
+   TIMELINE
+═══════════════════════════════ */
+.tl-item { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+.tl-item:last-child { border-bottom:none; }
+.tl-dot { width:8px; height:8px; border-radius:50%; border:2px solid; flex-shrink:0; margin-top:3px; }
+.tl-d-ok { border-color:var(--green); background:rgba(0,255,65,.2); }
+.tl-d-warn { border-color:var(--orange); background:rgba(255,140,0,.2); }
+.tl-d-bad  { border-color:var(--red); background:rgba(255,34,68,.2); }
+.tl-hop { font-family:var(--mono); font-size:8px; }
+.tl-hop-n { color:var(--t3); margin-bottom:2px; }
+.tl-hop-ip { color:var(--green); margin-bottom:1px; }
+.tl-hop-h { color:var(--cyan); margin-bottom:1px; }
+.tl-hop-dt { color:var(--t3); }
+.tl-flag { font-family:var(--mono); font-size:7px; padding:1px 5px; border:1px solid rgba(0,255,65,.25); background:rgba(0,255,65,.05); color:var(--green); margin-top:2px; display:inline-block; }
+
+/* ── VISUAL TRACE (HOPS MAP) v9 ── */
+.hops-map { margin-top:.5rem; }
+.hop-entry {
+  display:flex; align-items:stretch; padding:6px 0; position:relative;
+}
+.hop-entry::before {
+  content:''; position:absolute; left:15px; top:0; bottom:0; width:1px;
+  background:linear-gradient(180deg, rgba(0,255,65,.3), rgba(0,255,65,.05));
+}
+.hop-entry:last-child::before { display:none; }
+.hop-num-col { width:32px; flex-shrink:0; display:flex; justify-content:center; padding-top:3px; }
+.hop-num {
+  width:22px; height:22px; border:1px solid rgba(0,255,65,.4); background:rgba(0,255,65,.06);
+  display:flex; align-items:center; justify-content:center; position:relative; z-index:1;
+  font-family:var(--mono); font-size:8px; font-weight:700; color:var(--green); flex-shrink:0;
+}
+.hop-body { flex:1; padding-left:12px; }
+.hop-server { font-family:var(--mono); font-size:10px; color:var(--t1); margin-bottom:2px; word-break:break-all; }
+.hop-ip    { font-family:var(--mono); font-size:9px; color:var(--cyan); }
+.hop-time  { font-family:var(--mono); font-size:8px; color:var(--t3); }
+.hop-tags  { display:flex; gap:3px; flex-wrap:wrap; margin-top:3px; }
+.hop-tag {
+  font-family:var(--mono); font-size:7px; padding:1px 6px; border:1px solid;
+}
+.ht-clean { color:var(--green);  border-color:rgba(0,255,65,.3);  background:rgba(0,255,65,.05); }
+.ht-warn  { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.05); }
+.ht-bad   { color:var(--red);    border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.06); }
+.ht-info  { color:var(--cyan);   border-color:rgba(0,229,255,.25); background:rgba(0,229,255,.05); }
+
+/* ═══════════════════════════════
+   IP SECTION
+═══════════════════════════════ */
+.ip-card { background:var(--bg3); border:1px solid var(--line); padding:10px 12px; margin-bottom:6px; }
+.ip-card:last-child { margin-bottom:0; }
+.ip-row { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.ip-addr { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--green); letter-spacing:1px; }
+.ip-tags { display:flex; flex-wrap:wrap; gap:3px; margin-top:4px; }
+.ip-tag { font-family:var(--mono); font-size:7px; padding:1px 5px; border:1px solid; }
+.it-country { color:var(--cyan);   border-color:rgba(0,229,255,.25); background:rgba(0,229,255,.04); }
+.it-isp     { color:var(--t2);     border-color:var(--line2); }
+.it-bad     { color:var(--red);    border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.06); }
+.it-good    { color:var(--green);  border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.05); }
+.it-asn     { color:var(--orange); border-color:rgba(255,140,0,.25); background:rgba(255,140,0,.04); }
+.ip-asn  { font-family:var(--mono); font-size:8px; color:var(--t3); margin-top:2px; }
+.ip-src  { font-family:var(--mono); font-size:7px; color:var(--t3); margin-top:1px; }
+.ip-rep-col { text-align:right; flex-shrink:0; }
+.ip-rep-num { font-family:var(--mono); font-size:22px; font-weight:700; }
+.ip-bar { width:70px; height:3px; background:rgba(0,0,0,.4); margin-top:3px; overflow:hidden; }
+.ip-bar-fill { height:100%; transition:width .5s; }
+
+/* ═══════════════════════════════
+   HEADER TABLE
+═══════════════════════════════ */
+.hdr-line { position:relative; display:flex; align-items:flex-start; gap:8px; padding:4px 8px; border-bottom:1px solid var(--line); font-family:var(--term); font-size:10px; cursor:default; transition:background .15s; }
+.hdr-line:hover { background:rgba(255,255,255,.02); }
+.hk { color:var(--cyan); flex-shrink:0; min-width:140px; }
+.hvd { color:var(--red); font-weight:700; }
+.hvw { color:var(--orange); }
+.hvn { color:var(--t1); }
+.hdl-danger { border-left:3px solid var(--red); background:rgba(255,34,68,.04); }
+.hdl-warn   { border-left:3px solid var(--orange); background:rgba(255,140,0,.03); }
+.hdl-ok     { }
+.tooltip {
+  display:none; position:absolute; left:0; top:100%; z-index:100;
+  background:var(--bg4); border:1px solid var(--line2);
+  padding:6px 10px; font-family:var(--term); font-size:9px; color:var(--t1);
+  width:360px; box-shadow:0 8px 24px rgba(0,0,0,.6); border-top:1px solid var(--green);
+}
+.hdr-line:hover .tooltip { display:block; }
+.tt-mitre { margin-top:4px; color:var(--violet); font-size:8px; }
+
+/* ═══════════════════════════════
+   URL TABLE
+═══════════════════════════════ */
+.url-table { width:100%; border-collapse:collapse; font-size:10px; }
+.url-table th { font-family:var(--mono); font-size:7.5px; color:var(--t3); letter-spacing:1.5px; padding:5px 8px; border-bottom:1px solid var(--line2); text-align:left; }
+.url-table td { padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+.url-cti { font-family:var(--mono); font-size:7px; padding:1px 5px; border:1px solid; margin:1px 2px 0 0; display:inline-block; }
+.cti-vt { color:var(--red);   border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.07); }
+.cti-ok { color:var(--green); border-color:rgba(0,255,65,.3);  background:rgba(0,255,65,.05); }
+
+/* ═══════════════════════════════
+   RISK CHIPS
+═══════════════════════════════ */
+.risk-chip { font-family:var(--mono); font-size:7.5px; padding:2px 7px; font-weight:700; border:1px solid; letter-spacing:.5px; }
+.rc-H { color:var(--red);    border-color:rgba(255,34,68,.4); background:rgba(255,34,68,.1); }
+.rc-M { color:var(--orange); border-color:rgba(255,140,0,.4); background:rgba(255,140,0,.08); }
+.rc-L { color:var(--green);  border-color:rgba(0,255,65,.3);  background:rgba(0,255,65,.06); }
+
+/* ═══════════════════════════════
+   LOOKALIKE / ENTROPY
+═══════════════════════════════ */
+.la-item { display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 0; border-bottom:1px solid var(--line); }
+.la-real { font-family:var(--mono); font-size:10px; color:var(--green); }
+.la-arr  { color:var(--t3); font-size:10px; }
+.la-fake { font-family:var(--mono); font-size:10px; color:var(--red); font-weight:700; }
+.la-sim  { font-family:var(--mono); font-size:8px; color:var(--orange); padding:1px 5px; border:1px solid rgba(255,140,0,.3); }
+.la-ent  { font-family:var(--mono); font-size:8px; padding:1px 5px; border:1px solid rgba(255,34,68,.3); }
+.ent-row { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:9px; color:var(--t3); margin-top:2px; }
+.ent-bar { flex:1; height:2px; background:rgba(0,0,0,.4); overflow:hidden; }
+.ent-fill { height:100%; }
+
+/* ═══════════════════════════════
+   ATTACHMENTS
+═══════════════════════════════ */
+.att-item { display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+.att-item:last-child { border-bottom:none; }
+.att-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+.att-name { font-family:var(--mono); font-size:10.5px; font-weight:700; }
+.att-meta { font-family:var(--mono); font-size:8px; color:var(--t3); margin-top:1px; }
+.att-badge { margin-left:auto; flex-shrink:0; }
+
+/* ═══════════════════════════════
+   HIDDEN / B64
+═══════════════════════════════ */
+.hid-warn { font-family:var(--mono); font-size:10px; color:var(--red); padding:4px 0; }
+.b64-box  { font-family:var(--mono); font-size:9px; color:var(--t2); padding:6px 8px; margin:4px 0; background:rgba(0,229,255,.04); border:1px solid rgba(0,229,255,.12); }
+
+/* ═══════════════════════════════
+   IOC TABLE
+═══════════════════════════════ */
+.ioc-table { width:100%; border-collapse:collapse; font-size:10px; }
+.ioc-table th { font-family:var(--mono); font-size:7.5px; color:var(--t3); letter-spacing:1.5px; padding:5px 8px; border-bottom:1px solid var(--line2); text-align:left; background:var(--bg3); }
+.ioc-table td { padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:middle; font-family:var(--term); }
+.ioc-type { font-family:var(--mono); font-size:7px; padding:2px 6px; border:1px solid; }
+.it-IP     { color:var(--cyan);   border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.06); }
+.it-URL    { color:var(--red);    border-color:rgba(255,34,68,.35); background:rgba(255,34,68,.07); }
+.it-DOM    { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.07); }
+.it-HASH   { color:var(--green);  border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.06); }
+.it-EMAIL  { color:var(--violet); border-color:rgba(155,89,245,.3); background:rgba(155,89,245,.07); }
+
+/* ═══════════════════════════════
+   EMPTY STATE
+═══════════════════════════════ */
+.empty { font-family:var(--mono); font-size:10px; color:var(--t3); padding:10px 0; }
+.empty-ok { color:var(--green2); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — HTML SMUGGLING EXPLOIT ALERT
+══════════════════════════════════════════════ */
+.exploit-alert {
+  padding:12px 14px; background:rgba(255,34,68,.06);
+  border: 1px solid rgba(255,34,68,.5); border-top:3px solid var(--red);
+  font-family:var(--term); font-size:11px; color:var(--red);
+  margin-bottom:8px;
+  animation:exploit-pulse 1.5s infinite;
+}
+@keyframes exploit-pulse {
+  0%,100% { box-shadow:0 0 8px rgba(255,34,68,.2); }
+  50%     { box-shadow:0 0 24px rgba(255,34,68,.5); }
+}
+.exploit-alert-hdr {
+  font-family:var(--hud); font-size:14px; font-weight:700; letter-spacing:3px;
+  color:var(--red); margin-bottom:6px; display:flex; align-items:center; gap:8px;
+}
+.exploit-kw {
+  display:inline-block; font-family:var(--mono); font-size:8px;
+  padding:1px 6px; background:rgba(255,34,68,.15); border:1px solid rgba(255,34,68,.4);
+  color:#ff7a8a; margin:2px 2px 0 0;
+}
+
+/* ══════════════════════════════════════════════
+   v9.0 — AI NEURAL ENGINE PANEL
+══════════════════════════════════════════════ */
+.neural-panel {
+  background:var(--bg2); border:1px solid rgba(0,229,255,.2);
+  border-top:2px solid var(--cyan);
+  padding:1.1rem; position:relative; margin-bottom:.85rem;
+}
+.neural-panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, var(--cyan), transparent 60%); opacity:.4;
+}
+.neural-locked {
+  text-align:center; padding:1.25rem; opacity:.6;
+}
+.neural-lock-icon { font-size:28px; margin-bottom:.5rem; display:block; }
+.neural-lock-txt { font-family:var(--hud); font-size:13px; letter-spacing:3px; color:var(--t3); margin-bottom:.35rem; }
+.neural-lock-sub { font-family:var(--mono); font-size:8px; color:var(--t3); }
+.neural-agent-row { display:flex; gap:6px; margin:.65rem 0; }
+.neural-agent {
+  flex:1; padding:8px 6px; background:var(--bg3); border:1px solid var(--line2);
+  cursor:pointer; transition:all .2s; text-align:center;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+}
+.neural-agent:hover { border-color:rgba(0,229,255,.3); }
+.neural-agent.active {
+  border-color:var(--cyan); background:rgba(0,229,255,.07);
+  box-shadow:0 0 14px rgba(0,229,255,.12);
+}
+.neural-agent.active::after { content:'◆'; display:block; font-size:8px; color:var(--cyan); margin-top:2px; }
+.na-icon { font-size:14px; margin-bottom:3px; }
+.na-name { font-family:var(--hud); font-size:10px; font-weight:700; color:var(--t1); letter-spacing:1px; }
+.na-model { font-family:var(--mono); font-size:7px; color:var(--t3); margin-top:1px; }
+.neural-keys { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin:.6rem 0; }
+.neural-ask-btn {
+  width:100%; padding:.6rem;
+  background:rgba(0,229,255,.07); border:1px solid rgba(0,229,255,.35);
+  color:var(--t1); font-family:var(--hud); font-size:11px; letter-spacing:3px;
+  cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:8px;
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+}
+.neural-ask-btn:hover { border-color:var(--cyan); box-shadow:0 0 16px rgba(0,229,255,.15); }
+.neural-ask-btn:disabled { opacity:.35; cursor:not-allowed; }
+.neural-output {
+  margin-top:.75rem; padding:.85rem; background:rgba(0,0,0,.4);
+  border:1px solid rgba(0,229,255,.15); border-left:3px solid var(--cyan);
+  font-family:var(--term); font-size:11px; color:var(--t1); line-height:1.8;
+  max-height:400px; overflow-y:auto; white-space:pre-wrap;
+}
+.neural-output-hdr {
+  font-family:var(--mono); font-size:7px; color:var(--cyan); letter-spacing:2px;
+  margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid rgba(0,229,255,.15);
+}
+.ai-typing::after { content:'█'; animation:blink .7s infinite; }
+.consensus-bar {
+  display:flex; gap:4px; margin:.6rem 0; align-items:center;
+  font-family:var(--mono); font-size:8px; color:var(--t3);
+}
+.consensus-dot { width:8px; height:8px; border-radius:50%; background:var(--t3); transition:all .3s; }
+.consensus-dot.done { background:var(--green); box-shadow:0 0 6px var(--green); }
+.consensus-dot.active { background:var(--cyan); animation:blink .8s infinite; }
+
+/* ══════════════════════════════════════════════
+   v9.0 — SMART ANALYST NOTES
+══════════════════════════════════════════════ */
+.analyst-notes-box {
+  background:var(--bg2); border:1px solid rgba(0,229,255,.2);
+  border-left:3px solid var(--cyan);
+  padding:1.1rem; margin-bottom:.85rem;
+}
+.analyst-notes-area {
+  width:100%; background:rgba(0,0,0,.4); border:1px solid var(--line2);
+  padding:.65rem .85rem; color:var(--t1); font-family:var(--term); font-size:11px;
+  resize:vertical; min-height:90px; line-height:1.7; outline:none; transition:border-color .2s;
+  margin-top:.5rem;
+}
+.analyst-notes-area:focus { border-color:var(--cyan); }
+.analyst-notes-area::placeholder { color:var(--t3); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — EXEC SUMMARY
+══════════════════════════════════════════════ */
+.exec-summary {
+  padding:1rem 1.25rem; margin-bottom:.85rem;
+  position:relative; overflow:hidden;
+}
+.exec-summary.exec-danger {
+  background:rgba(255,34,68,.06); border:1px solid rgba(255,34,68,.4);
+  border-top:3px solid var(--red);
+}
+.exec-summary.exec-warn {
+  background:rgba(255,140,0,.05); border:1px solid rgba(255,140,0,.35);
+  border-top:3px solid var(--orange);
+}
+.exec-summary.exec-safe {
+  background:rgba(0,255,65,.04); border:1px solid rgba(0,255,65,.3);
+  border-top:3px solid var(--green);
+}
+.exec-label {
+  font-family:var(--hud); font-size:9px; letter-spacing:4px; color:var(--t3);
+  text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:8px;
+}
+.exec-label::before { content:'◉'; font-size:10px; }
+.exec-verdict-line {
+  font-family:var(--hud); font-size:17px; font-weight:700; letter-spacing:1px; color:var(--t0); line-height:1.4;
+}
+.exec-reasoning {
+  margin-top:6px; font-family:var(--term); font-size:10px; color:var(--t2); line-height:1.6;
+}
+
+/* ══════════════════════════════════════════════
+   v9.0 — DECISION SUPPORT
+══════════════════════════════════════════════ */
+.decision-box {
+  background:var(--bg2); border:1px solid var(--line2); padding:1.1rem; margin-bottom:.85rem; position:relative;
+}
+.decision-box.decision-critical { border-color:rgba(255,34,68,.4); border-top:2px solid var(--red); }
+.decision-box.decision-warn     { border-color:rgba(255,140,0,.35); border-top:2px solid var(--orange); }
+.decision-box.decision-safe     { border-color:rgba(0,255,65,.3);   border-top:2px solid var(--green); }
+.decision-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:.75rem; }
+.decision-action {
+  padding:4px 10px; font-family:var(--mono); font-size:8px; letter-spacing:1px;
+  border:1px solid; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:5px;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+}
+.da-critical { color:var(--red);    border-color:rgba(255,34,68,.4); background:rgba(255,34,68,.07); }
+.da-warn     { color:var(--orange); border-color:rgba(255,140,0,.35); background:rgba(255,140,0,.06); }
+.da-info     { color:var(--cyan);   border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.05); }
+.da-ok       { color:var(--green);  border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.05); }
+.decision-action:hover { filter:brightness(1.2); transform:translateY(-1px); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — SPAM SCORE
+══════════════════════════════════════════════ */
+.spam-score-section { background:var(--bg3); border:1px solid var(--line); padding:10px 12px; margin-bottom:8px; }
+.spam-scl-bar  { height:6px; background:var(--bg); margin:5px 0; overflow:hidden; }
+.spam-scl-fill { height:100%; transition:width .6s; }
+.spam-label-row { display:flex; justify-content:space-between; font-family:var(--mono); font-size:8px; color:var(--t3); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — ANALYST CHECKLIST
+══════════════════════════════════════════════ */
+.analyst-checklist { background:var(--bg2); border:1px solid var(--line2); border-left:3px solid var(--orange); padding:1.1rem; position:relative; }
+.ac-item { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+.ac-item:last-child { border-bottom:none; }
+.ac-box { width:15px; height:15px; border:1.5px solid var(--t3); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.ac-box.checked { background:var(--green);  border-color:var(--green); }
+.ac-box.checked::after { content:'✓'; font-size:9px; color:var(--bg); font-weight:700; }
+.ac-box.fail    { background:var(--red);    border-color:var(--red); }
+.ac-box.fail::after { content:'✗'; font-size:9px; color:#fff; font-weight:700; }
+.ac-label { font-family:var(--term); font-size:10px; color:var(--t1); flex:1; line-height:1.4; }
+.ac-label small { color:var(--t3); font-size:9px; display:block; margin-top:2px; }
+.ac-status { font-family:var(--mono); font-size:7px; padding:1px 5px; border:1px solid; flex-shrink:0; }
+.ac-s-ok   { color:var(--green);  border-color:rgba(0,255,65,.3);  background:rgba(0,255,65,.06); }
+.ac-s-warn { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.06); }
+.ac-s-fail { color:var(--red);    border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.06); }
+.ac-s-pend { color:var(--t3); border-color:var(--line2); }
+.ac-progress { font-family:var(--mono); font-size:9px; color:var(--t3); margin-top:.5rem; display:flex; align-items:center; gap:8px; }
+.ac-prog-bar { flex:1; height:2px; background:var(--bg3); overflow:hidden; }
+.ac-prog-fill { height:100%; background:var(--green); transition:width .4s; }
+
+/* ══════════════════════════════════════════════
+   v9.0 — MITRE HEATMAP
+══════════════════════════════════════════════ */
+.mitre-heatmap { display:flex; flex-direction:column; gap:2px; margin-top:.5rem; }
+.hm-tactic-row { display:flex; align-items:stretch; gap:2px; min-height:42px; }
+.hm-tactic-label {
+  width:120px; flex-shrink:0; font-family:var(--mono); font-size:7px; color:var(--t3);
+  letter-spacing:.5px; text-transform:uppercase; display:flex; align-items:center;
+  padding-right:6px; line-height:1.25; text-align:right; justify-content:flex-end;
+}
+.hm-cells { display:flex; gap:2px; flex-wrap:wrap; align-items:center; }
+.hm-cell {
+  width:66px; height:38px; border:1px solid; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-family:var(--mono); font-size:7px;
+  padding:3px; text-align:center; line-height:1.2; cursor:default; transition:all .2s; position:relative;
+}
+.hm-cell:hover { transform:scale(1.07); z-index:10; }
+.hm-cell-id   { font-weight:700; letter-spacing:.5px; }
+.hm-cell-name { font-size:5.5px; opacity:.7; margin-top:1px; }
+.hm-cell.hm-0 { background:var(--bg3); border-color:var(--line); color:var(--t3); }
+.hm-cell.hm-1 { background:rgba(0,255,65,.06); border-color:rgba(0,255,65,.2); color:var(--green); }
+.hm-cell.hm-2 { background:rgba(255,140,0,.1); border-color:rgba(255,140,0,.4); color:var(--orange); box-shadow:0 0 8px rgba(255,140,0,.15); }
+.hm-cell.hm-3 { background:rgba(255,34,68,.12); border-color:rgba(255,34,68,.5); color:var(--red); box-shadow:0 0 10px rgba(255,34,68,.2); }
+.hm-cell.hm-4 { background:rgba(255,34,68,.22); border-color:var(--red); color:#ff8899; box-shadow:0 0 16px rgba(255,34,68,.3); animation:hm-p 2.5s infinite; }
+@keyframes hm-p { 0%,100%{box-shadow:0 0 10px rgba(255,34,68,.2)}50%{box-shadow:0 0 24px rgba(255,34,68,.5)} }
+.hm-legend { display:flex; gap:10px; margin-top:5px; align-items:center; justify-content:flex-end; }
+.hm-leg-item { display:flex; align-items:center; gap:3px; font-family:var(--mono); font-size:7px; color:var(--t3); }
+.hm-leg-box  { width:9px; height:9px; }
+
+/* ══════════════════════════════════════════════
+   v9.0 — INCONSISTENCY MATRIX
+══════════════════════════════════════════════ */
+.incon-matrix { }
+.incon-row { display:grid; grid-template-columns:110px 1fr 1fr 70px; gap:5px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:10px; }
+.incon-row:last-child { border-bottom:none; }
+.incon-row.header-row { font-family:var(--mono); font-size:7px; color:var(--t3); letter-spacing:1px; padding-bottom:5px; border-bottom:1px solid var(--line2); }
+.incon-field { font-family:var(--mono); font-size:8px; color:var(--t3); }
+.incon-val { font-family:var(--term); font-size:9px; padding:2px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid; }
+.incon-val.match   { background:rgba(0,255,65,.05);  color:var(--green);  border-color:rgba(0,255,65,.2); }
+.incon-val.nomatch { background:rgba(255,34,68,.06); color:var(--red);    border-color:rgba(255,34,68,.3); }
+.incon-val.empty   { background:var(--bg3);           color:var(--t3);    border-color:var(--line); }
+.incon-verdict { font-family:var(--mono); font-size:7px; padding:2px 5px; border:1px solid; text-align:center; }
+.iv-ok   { color:var(--green);  border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.05); }
+.iv-warn { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.05); }
+.iv-bad  { color:var(--red);    border-color:rgba(255,34,68,.3); background:rgba(255,34,68,.06); }
+.iv-none { color:var(--t3); border-color:var(--line); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — EVIDENCE CANVAS
+══════════════════════════════════════════════ */
+.evc-line {
+  font-family:var(--term); font-size:10.5px; padding:4px 10px 4px 14px;
+  border-left:2px solid transparent;
+  margin-bottom:1px; line-height:1.65; position:relative; cursor:default; transition:all .15s;
+}
+.evc-line:hover { transform:translateX(2px); background:rgba(255,255,255,.02); }
+.evc-normal  { border-left-color:transparent; }
+.evc-danger  { border-left-color:var(--red);    background:rgba(255,34,68,.05); box-shadow:0 0 10px rgba(255,34,68,.05); }
+.evc-danger:hover { box-shadow:0 0 18px rgba(255,34,68,.18); }
+.evc-warn    { border-left-color:var(--orange);  background:rgba(255,140,0,.04); }
+.evc-warn:hover { box-shadow:0 0 14px rgba(255,140,0,.14); }
+.evc-rtl     { border-left-color:#ff66cc; background:rgba(255,102,204,.05); }
+.evc-rtl:hover { box-shadow:0 0 16px rgba(255,102,204,.2); }
+.evc-b64     { border-left-color:var(--cyan); background:rgba(0,229,255,.04); }
+.evc-b64:hover { box-shadow:0 0 14px rgba(0,229,255,.14); }
+.evc-mismatch { border-left-color:var(--orange); background:rgba(255,140,0,.05); animation:glow-mm 3s infinite; }
+@keyframes glow-mm { 0%,100%{box-shadow:0 0 6px rgba(255,140,0,.08)}50%{box-shadow:0 0 18px rgba(255,140,0,.22)} }
+.evc-key  { color:var(--cyan); font-weight:500; }
+.evc-val  { color:var(--t1); }
+.evc-val.v-danger { color:var(--red); }
+.evc-val.v-warn   { color:var(--orange); }
+.evc-val.v-rtl    { color:#ff99dd; }
+.evc-lnum { font-family:var(--mono); font-size:8px; color:var(--t3); margin-right:10px; user-select:none; min-width:20px; display:inline-block; }
+.evc-badges { display:inline-flex; gap:3px; margin-left:6px; }
+.evc-badge { font-family:var(--mono); font-size:7px; padding:1px 4px; border:1px solid; display:inline-flex; align-items:center; gap:2px; }
+.evb-danger  { color:var(--red);    border-color:rgba(255,34,68,.4); background:rgba(255,34,68,.1); }
+.evb-warn    { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.08); }
+.evb-rtl     { color:#ff99dd; border-color:rgba(255,102,204,.35); background:rgba(255,102,204,.08); }
+.evb-b64     { color:var(--cyan); border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.07); }
+.evb-mismatch{ color:var(--orange); border-color:rgba(255,140,0,.4); background:rgba(255,140,0,.1); }
+.evc-note {
+  margin:2px 0 3px 28px; padding:4px 8px;
+  background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15);
+  font-family:var(--term); font-size:9px; color:var(--cyan); line-height:1.5; display:none;
+}
+.evc-line:hover .evc-note { display:block; }
+
+/* ══════════════════════════════════════════════
+   v9.0 — SANDBOX / URL EXTERNAL BTNS
+══════════════════════════════════════════════ */
+.url-ext-btns { display:flex; gap:3px; flex-wrap:wrap; }
+.url-ext-btn {
+  font-family:var(--mono); font-size:7px; padding:2px 7px; border:1px solid;
+  cursor:pointer; transition:all .15s; white-space:nowrap; text-decoration:none;
+  display:inline-flex; align-items:center; gap:2px;
+}
+.ueb-vt { color:var(--cyan);   border-color:rgba(0,229,255,.3); background:rgba(0,229,255,.05); }
+.ueb-us { color:var(--orange); border-color:rgba(255,140,0,.3); background:rgba(255,140,0,.05); }
+.ueb-sb { color:var(--violet); border-color:rgba(155,89,245,.3); background:rgba(155,89,245,.05); }
+.url-ext-btn:hover { filter:brightness(1.35); }
+.sb-url-row { display:flex; align-items:center; gap:8px; padding:6px 8px; border-bottom:1px solid var(--line); transition:background .15s; }
+.sb-url-row:hover { background:rgba(255,255,255,.02); }
+.sb-url-text { flex:1; font-family:var(--term); font-size:9px; color:var(--t2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sb-status { font-family:var(--mono); font-size:7px; padding:2px 5px; border:1px solid; }
+.sb-s-pending { color:var(--t3); border-color:var(--line2); }
+.sb-s-sent    { color:var(--green); border-color:rgba(0,255,65,.3); background:rgba(0,255,65,.05); }
+.sandbox-panel { background:var(--bg2); border:1px solid rgba(255,140,0,.2); border-top:2px solid var(--orange); padding:1.1rem; margin-bottom:.85rem; position:relative; }
+.sandbox-status-bar { display:flex; gap:8px; align-items:center; margin-top:.6rem; padding:6px 10px; background:var(--bg3); border:1px solid var(--line); font-family:var(--mono); font-size:8px; color:var(--t3); }
+
+/* ══════════════════════════════════════════════
+   v9.0 — FORENSIC SUMMARY
+══════════════════════════════════════════════ */
+.forensic-summary {
+  background:var(--bg2); border:1px solid rgba(0,229,255,.2); border-top:2px solid var(--cyan);
+  padding:1.1rem; margin-bottom:.85rem; position:relative;
+}
+.fs-meta { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:.75rem; }
+.fs-meta-item { background:var(--bg3); border:1px solid var(--line); padding:7px 9px; }
+.fs-meta-key { font-family:var(--mono); font-size:7px; color:var(--t3); letter-spacing:1px; margin-bottom:2px; }
+.fs-meta-val { font-family:var(--term); font-size:10px; color:var(--t1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ══════════════════════════════════════════════
+   GEOREP
+══════════════════════════════════════════════ */
+.geo-rep-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:10px; }
+.geo-rep-row:last-child { border-bottom:none; }
+.geo-campaign-badge { font-family:var(--mono); font-size:7px; padding:2px 6px; color:var(--red); border:1px solid rgba(255,34,68,.3); background:rgba(255,34,68,.07); }
+.hchar-item { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid var(--line); font-family:var(--term); font-size:10px; }
+.hchar-hex  { font-family:var(--mono); font-size:8px; padding:2px 6px; background:rgba(255,102,204,.1); color:#ff99dd; border:1px solid rgba(255,102,204,.25); }
+.hchar-desc { color:var(--t2); font-size:9px; }
+.hchar-warn { color:#ff66cc; font-weight:500; }
+.smuggle-alert { padding:8px 12px; background:rgba(255,34,68,.07); border:1px solid rgba(255,34,68,.35); font-family:var(--term); font-size:11px; color:var(--red); margin-bottom:6px; display:flex; align-items:flex-start; gap:8px; }
+.smuggle-keyword { display:inline-block; font-family:var(--mono); font-size:8px; padding:1px 5px; background:rgba(255,34,68,.12); border:1px solid rgba(255,34,68,.3); color:#ff8888; margin:2px 2px 0 0; }
+.qr-checklist { background:rgba(255,140,0,.05); border:1px solid rgba(255,140,0,.2); padding:8px 10px; }
+.qr-item { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid var(--line); font-family:var(--term); font-size:10px; color:var(--t1); border-bottom:1px solid var(--line); cursor:pointer; }
+.qr-item:last-child { border-bottom:none; }
+.qr-check { width:13px; height:13px; border:1px solid var(--orange); flex-shrink:0; display:flex; align-items:center; justify-content:center; background:transparent; transition:all .15s; }
+.qr-check.checked { background:var(--orange); }
+.qr-check.checked::after { content:'✓'; font-size:8px; color:var(--bg); font-weight:700; }
+
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--t3); }
+
+/* ══ v11 CTI BUTTONS ══ */
+.cti-btn {
+  display:inline-flex; align-items:center; gap:3px;
+  font-family:var(--mono); font-size:7px; padding:2px 8px;
+  border:1px solid; text-decoration:none; cursor:pointer;
+  transition:all .15s; white-space:nowrap;
+}
+.cti-vt { color:#00d4ff; border-color:rgba(0,212,255,.4); background:rgba(0,212,255,.07); }
+.cti-ab { color:#ff7a00; border-color:rgba(255,122,0,.4); background:rgba(255,122,0,.07); }
+.cti-btn:hover { filter:brightness(1.45); transform:translateY(-1px); }
+.ip-cti-row { display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; }
+.action-bar-pinned {
+  position:sticky; top:0; z-index:200;
+  display:flex; gap:6px; padding:.65rem 1rem;
+  background:rgba(3,7,16,.97);
+  border-bottom:2px solid var(--orange);
+  backdrop-filter:blur(10px);
+  flex-wrap:wrap; align-items:center;
+  box-shadow:0 4px 30px rgba(255,122,0,.1);
+}
+.att-critical { background:rgba(255,26,60,.07); border-left:3px solid var(--red) !important; animation:att-pulse 2.5s infinite; }
+@keyframes att-pulse { 0%,100%{box-shadow:0 0 6px rgba(255,26,60,.1)}50%{box-shadow:0 0 18px rgba(255,26,60,.3)} }
+.critical-finding { font-family:var(--mono); font-size:7px; padding:2px 6px; background:rgba(255,26,60,.15); color:var(--red); border:1px solid rgba(255,26,60,.4); animation:crit-blink 1.5s infinite; }
+@keyframes crit-blink { 0%,100%{opacity:1}50%{opacity:.4} }
+.url-cti { font-family:var(--mono); font-size:7px; padding:1px 5px; border:1px solid; display:inline-block; margin-right:2px; }
+.cti-ok  { color:var(--green); border-color:rgba(0,255,136,.3); background:rgba(0,255,136,.06); }
+
+</style>
+</head>
+<body>
+<!-- HUD corners -->
+<div class="hud-corner hud-tl"></div>
+<div class="hud-corner hud-tr"></div>
+<div class="hud-corner hud-bl"></div>
+<div class="hud-corner hud-br"></div>
+<!-- Matrix canvas -->
+<canvas id="matrix-canvas"></canvas>
+
+<div class="app" id="app">
+
+<!-- COMMAND HEADER -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-emblem">
+      <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="22,3 40,12.5 40,31.5 22,41 4,31.5 4,12.5" fill="none" stroke="rgba(0,255,65,.4)" stroke-width="1.5"/>
+        <polygon points="22,9 35,16.5 35,27.5 22,35 9,27.5 9,16.5" fill="rgba(0,255,65,.03)" stroke="rgba(0,255,65,.2)" stroke-width="1"/>
+        <path d="M15,22 L20,27 L29,16" fill="none" stroke="#00ff41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22" cy="22" r="3" fill="none" stroke="rgba(0,255,65,.3)" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-name">PHISH<em>GUARD</em></div>
+      <div class="logo-sub">TERMINATOR v11.1 · <span>INDUSTRIAL CTI</span> · FORENSIC COMMAND CENTER</div>
+    </div>
+  </div>
+  <div class="sys-status">
+    <div class="sys-pill sp-grn"><div class="dot dot-g"></div>ENGINE ONLINE</div>
+    <div class="sys-pill sp-cyn"><div class="dot dot-o"></div>IP INTEL</div>
+    <div class="sys-pill sp-vio">MITRE HEATMAP</div>
+    <div class="sys-pill sp-org"><div class="dot dot-r"></div>CTI BRIDGE</div>
+    <div class="sys-pill sp-red"><div class="dot dot-r"></div>EXPLOIT DETECT</div>
+  </div>
+</div>
+
+<!-- INPUT SECTION -->
+<div id="input-section">
+  <div class="upload-zone" id="dropzone">
+    <input type="file" id="file-input" accept=".eml,.msg,.txt">
+    <span class="uz-icon">📡</span>
+    <div class="uz-title">DROP EMAIL FILE HERE</div>
+    <div class="uz-sub">.EML · .MSG · .TXT — OR CLICK TO BROWSE</div>
+    <div id="fname-badge" class="fname-tag hidden">📎 <span id="fname-txt"></span></div>
+  </div>
+
+  <div class="sec-label">raw email content</div>
+  <textarea id="email-input" placeholder="Received: from mail.evil-phish.xyz (185.220.101.50) by mx.company.com
+From: security@paypa1-accounts.com
+To: user@company.com
+Return-Path: <bounce@relay-hack.ru>
+Reply-To: support@totally-legit.top
+Authentication-Results: spf=pass; dkim=pass
+Subject: ⚠️ URGENT: Your account will be suspended in 24 hours!
+X-Mailer: PHPMailer 6.0
+X-Originating-IP: 185.220.101.50
+
+Dear Customer, click here: http://bit.ly/3xVerify
+Real: https://paypa1-accounts.com.verify-login.xyz/confirm
+Attachment: Invoice_2025.pdf.exe"></textarea>
+  <button class="scan-btn" id="analyze-btn" onclick="startAnalysis()">▶ FORENSIC ANALİZİ BAŞLAT</button>
+</div>
+
+<!-- LOADING -->
+<div id="loading-section" class="loading-card hidden">
+  <div class="scan-header">
+    <div class="scan-spinner"></div>
+    <span id="scan-phase-txt">INITIATING FORENSIC SCAN...</span>
+  </div>
+  <div id="loading-steps"></div>
+  <div class="pbar"><div class="pbar-fill" id="progress-fill" style="width:2%"></div></div>
+  <div class="matrix-stream" id="matrix-stream-el">01001010 00110100 11001010 00100110...</div>
+</div>
+
+<!-- RESULTS -->
+<div id="results-section" class="hidden">
+  <div class="action-bar-pinned">
+    <span style="font-family:var(--hud);font-size:13px;font-weight:700;color:var(--orange);letter-spacing:3px;margin-right:10px">⬡ PHISHGUARD TERMINATOR v11.1</span>
+    <button class="a-btn ab-pdf" id="pdf-btn" onclick="exportPDF()">⬇ PDF İNDİR</button>
+    <button class="a-btn ab-copy" onclick="copyReport()">⧉ RAPORU KOPYALA</button>
+    <button class="a-btn ab-md" onclick="copyMarkdown()">⬡ MARKDOWN</button>
+    <button class="a-btn ab-reset" onclick="doReset()">◁ YENİ TARAMA</button>
+    <span id="report-timestamp" style="margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--t3)"></span>
+  </div>
+
+  <!-- DECISION SUPPORT -->
+  <div id="decision-box" class="decision-box decision-critical" style="margin-bottom:1rem">
+    <div class="card-title">⚡ KARAR DESTEK SİSTEMİ — ANALİST AKSİYON ÖNERİLERİ</div>
+    <div id="decision-summary" style="font-family:var(--dm);font-size:12px;color:var(--t1);line-height:1.6"></div>
+    <div class="decision-actions" id="decision-actions"></div>
+  </div>
+
+  <!-- FORENSIC SUMMARY HEADER -->
+  <div class="forensic-summary" id="forensic-summary">
+    <div class="card-title" style="color:#c09aff;font-size:10px;letter-spacing:2px">📁 FORENSIC SUMMARY — OLAY ÖZET KARTI</div>
+    <div class="fs-meta" id="fs-meta"></div>
+  </div>
+
+  <!-- MINI STATS -->
+  <div class="mini-stats">
+    <div class="mini-stat"><div class="ms-val" id="ms-score" style="color:var(--flame)">0</div><div class="ms-lbl">RİSK SKORU</div></div>
+    <div class="mini-stat"><div class="ms-val" id="ms-high" style="color:var(--flame)">0</div><div class="ms-lbl">HIGH BULGU</div></div>
+    <div class="mini-stat"><div class="ms-val" id="ms-ioc" style="color:var(--neon)">0</div><div class="ms-lbl">IOC</div></div>
+    <div class="mini-stat"><div class="ms-val" id="ms-urls" style="color:var(--amber)">0</div><div class="ms-lbl">ŞÜPHELİ URL</div></div>
+  </div>
+
+  <!-- SCORE + FINDINGS -->
+  <div class="score-section">
+    <div class="score-card">
+      <div class="card-title">THREAT LEVEL</div>
+      <div class="score-ring">
+        <svg viewBox="0 0 148 148" width="148" height="148" style="position:absolute;inset:0">
+          <defs>
+            <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#b8ff35"/>
+              <stop offset="45%" stop-color="#ffad00"/>
+              <stop offset="100%" stop-color="#ff4545"/>
+            </linearGradient>
+          </defs>
+          <circle cx="74" cy="74" r="60" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+          <circle id="score-ring-el" cx="74" cy="74" r="60" fill="none" stroke="url(#rg)"
+            stroke-width="10" stroke-linecap="square"
+            stroke-dasharray="376.99" stroke-dashoffset="376.99"
+            transform="rotate(-90 74 74)"/>
+          <circle cx="74" cy="74" r="52" fill="rgba(7,11,20,.8)"/>
+        </svg>
+        <div class="score-val">
+          <div class="score-num" id="score-display">0</div>
+          <div class="score-of">/ 100</div>
+        </div>
+      </div>
+      <div class="verdict-tag" id="verdict-tag">—</div>
+      <div class="score-meta" id="score-meta"></div>
+    </div>
+
+    <div class="findings-card">
+      <div class="card-title">KRİTİK BULGULAR + MITRE ATT&CK</div>
+      <div id="findings-container"></div>
+      <div id="trust-override-box"></div>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div class="panel" style="margin-bottom:1rem">
+    <div class="card-title">SPF / DKIM / DMARC — TRUST BALANCING</div>
+    <div class="auth-3" id="auth-container"></div>
+    <div id="auth-notes" style="margin-top:.5rem"></div>
+  </div>
+
+  <!-- GRID ROW 1: Timeline + IP -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="card-title">RECEIVED ZİNCİRİ — SUNUCU YOLCULUĞU</div>
+      <div id="timeline-container"></div>
+    </div>
+    <div class="panel">
+      <div class="card-title">IP ANALİZİ + THREAT INTEL <span style="font-family:var(--mono);font-size:8px;color:var(--t3);margin-left:4px">LIVE</span></div>
+      <div id="ip-container"></div>
+    </div>
+  </div>
+
+  <!-- GRID ROW 2: Headers + URLs -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="card-title">HEADER ANALİZİ <span style="font-size:8px;color:var(--t3)">(HOVER = AÇIKLAMA)</span></div>
+      <div id="header-container"></div>
+    </div>
+    <div class="panel">
+      <div class="card-title">URL / LİNK ANALİZİ + CTI</div>
+      <div id="url-container"></div>
+    </div>
+  </div>
+
+  <!-- GRID ROW 3: Lookalike + Attachments -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="card-title">LOOK-ALIKE + ENTROPY ANALİZİ</div>
+      <div id="lookalike-container"></div>
+    </div>
+    <div class="panel">
+      <div class="card-title">EK DOSYA ANALİZİ</div>
+      <div id="attachment-container"></div>
+    </div>
+  </div>
+
+  <!-- GRID ROW 4: Hidden + Body Analysis -->
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="panel">
+      <div class="card-title">GİZLİ KARAKTER & BASE64 DECODE</div>
+      <div id="hidden-container"></div>
+    </div>
+    <div class="panel">
+      <div class="card-title">BODY ANALİZİ — SOCİAL ENGİNEERİNG</div>
+      <div id="body-container"></div>
+    </div>
+  </div>
+
+  <!-- IOC TABLE full width -->
+  <div class="panel col-span" style="margin-bottom:1rem">
+    <div class="card-title">IOC LİSTESİ — UZLAŞI GÖSTERGELERİ</div>
+    <table class="ioc-table">
+      <thead><tr><th>TİP</th><th>DEĞER</th><th>AÇIKLAMA</th><th>RİSK</th><th>KAYNAK</th><th>CTI KÖPRÜSÜ</th><th>MITRE</th></tr></thead>
+      <tbody id="ioc-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ANALYST CHECKLIST + INCONSISTENCY MATRIX side by side -->
+  <div class="grid-2" style="margin-bottom:1rem">
+    <!-- Analyst Checklist -->
+    <div class="analyst-checklist">
+      <div class="card-title">📋 ANALİST CHECKLIST — MANUEL DOĞRULAMA</div>
+      <div id="analyst-checklist-items"></div>
+      <div class="ac-progress">
+        <span id="ac-progress-text">0/0 tamamlandı</span>
+        <div class="ac-prog-bar"><div class="ac-prog-fill" id="ac-prog-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Inconsistency Matrix -->
+    <div class="panel">
+      <div class="card-title" style="color:#ff99dd">🔀 INCONSISTENCY MATRIX — HEADER UYUŞMAZLIK TABLOSU</div>
+      <div class="incon-matrix" id="incon-matrix-container"></div>
+    </div>
+  </div>
+
+  <!-- MITRE ATT&CK HEATMAP full width -->
+  <div class="panel col-span" style="margin-bottom:1rem">
+    <div class="card-title" style="color:var(--violet)">🛡 MITRE ATT&CK HEATMAP — TAKTİK YOĞUNLUK HARİTASI</div>
+    <div id="mitre-heatmap-container"></div>
+    <!-- legacy matrix kept as fallback -->
+    <div id="mitre-matrix-container" style="display:none"></div>
+  </div>
+
+  <!-- SANDBOX URL PANEL full width -->
+  <div class="panel col-span" style="margin-bottom:1rem" id="sandbox-results-panel">
+    <div class="card-title" style="color:var(--amber)">🧪 SANDBOX BRIDGE — TEK TIKLA URL ANALİZİ</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-bottom:.65rem">Online modda API key girilmişse doğrudan gönderim yapılır. Offline modda harici linkler açılır.</div>
+    <div id="sandbox-results-urls"></div>
+  </div>
+
+  <!-- EVIDENCE CANVAS full width -->
+  <div class="panel col-span" style="margin-bottom:1rem;border-color:rgba(255,102,204,.2)">
+    <div class="card-title" style="color:#ff99dd">🎨 ANALYST EVIDENCE CANVAS — PARLAYAN HEADER AYRIŞTIRICISI</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-bottom:.6rem;padding:4px 8px;background:rgba(255,102,204,.05);border:1px solid rgba(255,102,204,.12);border-radius:2px">
+      <span style="color:var(--flame)">■ DANGER</span>&nbsp;&nbsp;
+      <span style="color:var(--amber)">■ WARN</span>&nbsp;&nbsp;
+      <span style="color:#ff99dd">■ RTL/UNICODE</span>&nbsp;&nbsp;
+      <span style="color:var(--neon)">■ BASE64</span>&nbsp;&nbsp;
+      <span style="color:var(--violet)">■ MISMATCH</span>&nbsp;&nbsp;
+      <em style="color:var(--t3)">Hover → Analist Notu</em>
+    </div>
+    <div class="ev-canvas" id="evidence-canvas-container" style="max-height:480px;overflow-y:auto"></div>
+  </div>
+
+  <!-- SPAM SCORE + GeoIP Reputation full width -->
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="panel">
+      <div class="card-title">📊 SPAM SKOR ANALİZİ — KURUMSAL MAIL SİSTEMLERİ</div>
+      <div id="spam-score-container"></div>
+    </div>
+    <div class="panel">
+      <div class="card-title">🌍 GeoIP REPÜTASYON — KAMPANYA EŞLEŞMESİ</div>
+      <div id="georep-container"></div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE VIEWER full width -->
+  <div class="evidence-panel col-span" style="margin-bottom:1rem">
+    <div class="card-title" style="color:#c09aff">🔬 EVIDENCE VIEWER — HEADER DEKONSTRÜKSİYON PANELİ (ANALIST MODU)</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-bottom:.75rem;padding:4px 8px;background:rgba(155,89,245,.08);border:1px solid rgba(155,89,245,.15);border-radius:2px">
+      Renkli satırlar: <span style="color:var(--flame)">■ DANGER</span>&nbsp;&nbsp;
+      <span style="color:var(--amber)">■ WARN</span>&nbsp;&nbsp;
+      <span style="color:#c09aff">■ RTL/GİZLİ KARAKTER</span>&nbsp;&nbsp;
+      <span style="color:var(--neon)">■ BASE64/ENCODING</span>&nbsp;&nbsp;
+      Hover = Analist Notu
+    </div>
+    <div id="evidence-viewer-container" style="max-height:420px;overflow-y:auto"></div>
+  </div>
+
+  <!-- RAW HEADERS full width -->
+  <div class="panel col-span" style="margin-bottom:1.5rem">
+    <div class="card-title">HAM HEADER — TAM ANALİZ (HOVER = TOOLTIP)</div>
+    <div id="raw-header-container"></div>
+  </div>
+</div><!-- end results -->
+
+</div><!-- end app -->
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ════════════════════════════════════════════════════════════════
+const M = {
+  SPOOF:    {id:'T1566.001', name:'Spearphishing Attachment', tactic:'Initial Access'},
+  IMPERSON: {id:'T1036',     name:'Masquerading',             tactic:'Defense Evasion'},
+  RELAY:    {id:'T1534',     name:'Internal Spearphishing / Relay', tactic:'Lateral Movement'},
+  OBFUSC:   {id:'T1027',     name:'Obfuscated Files or Information', tactic:'Defense Evasion'},
+  URL_HIDE: {id:'T1204.001', name:'Malicious Link',           tactic:'Execution'},
+  EXEC_ATT: {id:'T1204.002', name:'Malicious File Execution', tactic:'Execution'},
+  COLLECT:  {id:'T1056',     name:'Input Capture / Credential', tactic:'Collection'},
+  SOCIAL:   {id:'T1566',     name:'Phishing Social Engineering', tactic:'Initial Access'},
+  LOOKALIKE:{id:'T1036.005', name:'Match Legitimate Name or Location', tactic:'Defense Evasion'},
+  ENTROPY:  {id:'T1568',     name:'Dynamic Resolution / DGA', tactic:'Command and Control'},
+  HIDDEN:   {id:'T1027.001', name:'Binary Padding / Hidden Text', tactic:'Defense Evasion'},
+  MACRO:    {id:'T1137',     name:'Office Application Startup Macro', tactic:'Persistence'},
+  HEADER:   {id:'T1036.008', name:'Masquerade File Type',    tactic:'Defense Evasion'},
+  SMUGGLE:  {id:'T1027.006', name:'HTML Smuggling',          tactic:'Defense Evasion'},
+  UNICODE:  {id:'T1036.002', name:'Unicode Right-to-Left Override', tactic:'Defense Evasion'},
+};
+
+// Known malicious campaign IP ranges (simulated threat intel)
+const MALWARE_CAMPAIGN_RANGES = [
+  {range:'185.220.', label:'Tor Exit Node Network', campaign:'APT Relay Infrastructure'},
+  {range:'192.42.116.', label:'Tor Project IPs', campaign:'Anonymization Network'},
+  {range:'45.142.212.', label:'Bulletproof Hosting RU', campaign:'Phishing-as-a-Service'},
+  {range:'91.108.4.', label:'Telegram DC (spoofed)', campaign:'Notification Phishing'},
+  {range:'5.188.206.', label:'Known Spam Infrastructure', campaign:'Mass Phishing Campaign'},
+  {range:'194.165.16.', label:'Malware C2 Cluster', campaign:'Credential Harvesting C2'},
+  {range:'45.33.32.', label:'Linode Flagged Range', campaign:'Phishing Kit Hosting'},
+  {range:'23.95.215.', label:'Bulletproof Hosting US', campaign:'Ransomware Dropper'},
+  {range:'104.21.', label:'Cloudflare Proxy (abused)', campaign:'Proxied Phishing Pages'},
+  {range:'172.67.',  label:'Cloudflare Proxy (abused)', campaign:'Proxied Phishing Pages'},
+];
+
+// HTML Smuggling keywords
+const SMUGGLE_KEYWORDS = ['eval','atob','btoa','Blob','createObjectURL','msSaveBlob','navigator.msSaveOrOpenBlob','createElement.*a','click()','document.body.appendChild','ArrayBuffer','Uint8Array','fromCharCode','String.fromCharCode','unescape(','decodeURIComponent'];
+const HIDDEN_CHAR_MAP = {
+  '\u200B': {name:'ZERO WIDTH SPACE', hex:'U+200B', desc:'Spam bypass / word splitting'},
+  '\u200C': {name:'ZERO WIDTH NON-JOINER', hex:'U+200C', desc:'Invisible word separator'},
+  '\u200D': {name:'ZERO WIDTH JOINER', hex:'U+200D', desc:'Invisible character injection'},
+  '\u202E': {name:'RIGHT-TO-LEFT OVERRIDE', hex:'U+202E', desc:'Filename/text reversal attack'},
+  '\u202C': {name:'POP DIRECTIONAL FORMATTING', hex:'U+202C', desc:'RTL attack terminator'},
+  '\u202A': {name:'LEFT-TO-RIGHT EMBEDDING', hex:'U+202A', desc:'Direction embedding attack'},
+  '\u202B': {name:'RIGHT-TO-LEFT EMBEDDING', hex:'U+202B', desc:'Direction embedding attack'},
+  '\uFEFF': {name:'ZERO WIDTH NO-BREAK SPACE (BOM)', hex:'U+FEFF', desc:'BOM injection'},
+  '\u00AD': {name:'SOFT HYPHEN', hex:'U+00AD', desc:'Invisible keyword splitter'},
+  '\u2060': {name:'WORD JOINER', hex:'U+2060', desc:'Invisible glue character'},
+};
+
+const BRANDS = [
+  {d:'ziraatbank.com.tr',  a:['ziraat-bank','ziraatbankasi','zraat','ziraatbnk','ziraet','ziraatt']},
+  {d:'isbank.com.tr',      a:['is-bank','isbankasi','isbnk','ibank','isbnkasi']},
+  {d:'garantibbva.com.tr', a:['garanti','garantibank','garantibbva','garanti-bbva','garantii']},
+  {d:'akbank.com.tr',      a:['akbnk','ak-bank','akbnktr','akbanktr']},
+  {d:'yapikredi.com.tr',   a:['yapi-kredi','yapikredibank','ykb','yapikrdi','yapicredii']},
+  {d:'halkbank.com.tr',    a:['halk-bank','halkbnk','halkbankasi','halkbnkasi']},
+  {d:'vakifbank.com.tr',   a:['vakif-bank','vakifbnk','vkfbank','vakifbnkasi']},
+  {d:'denizbank.com',      a:['deniz-bank','denizbankasi','dnizbank']},
+  {d:'enpara.com',         a:['en-para','enparabank','enpara-bank']},
+  {d:'odeabank.com.tr',    a:['odea-bank','odeabnk']},
+  {d:'turkiye.gov.tr',     a:['e-devlet','edevlet','turkiye-gov','gov-tr','turkiyegov','e-devleet']},
+  {d:'saglik.gov.tr',      a:['saglik-gov','saglikbakanligi','saglik-bakanligi']},
+  {d:'gib.gov.tr',         a:['vergi','gib-gov','e-vergi','gibb','gibgov']},
+  {d:'egm.gov.tr',         a:['emniyet','egm-gov','emniyetmudur']},
+  {d:'pttkargo.com.tr',    a:['ptt','ptt-kargo','pttkargo','ptt-cargo','pttkargoo']},
+  {d:'kocsistem.com.tr',   a:['koc-sistem','kocsistem','kocsys']},
+  {d:'turkcell.com.tr',    a:['turk-cell','trcell','turkcell-tr','turkcel']},
+  {d:'vodafone.com.tr',    a:['vodafone-tr','vdafone','vodafontr','vodafoone']},
+  {d:'turk.net',           a:['turk-net','turknet']},
+  {d:'trendyol.com',       a:['trendiyol','trendyol-com','trendiyoll','trndyol']},
+  {d:'hepsiburada.com',    a:['hepsi-burada','hepsibur','hepsiburadacom']},
+  {d:'n11.com',            a:['n-11','n11com','n1l']},
+  {d:'gittigidiyor.com',   a:['gitti-gidiyor','gittigidiyorcom']},
+  {d:'paypal.com',         a:['paypa1','paypa-l','paypall','pay-pal','paypaI','paypa1','paypa]']},
+  {d:'google.com',         a:['g00gle','gooogle','googie','g0ogle','goggle']},
+  {d:'microsoft.com',      a:['micros0ft','microsofft','mlcrosoft','microsooft','miicrosoft']},
+  {d:'apple.com',          a:['app1e','appie','aple','appl3','appIe']},
+  {d:'amazon.com',         a:['amaz0n','arnazon','amazzon','anazon','amason']},
+  {d:'netflix.com',        a:['netf1ix','netfilx','netlfix','netfliix']},
+  {d:'linkedin.com',       a:['linkdin','linkedln','linkediin','linkeedin']},
+  {d:'facebook.com',       a:['faceb00k','facebok','facebook-login','facebbok']},
+  {d:'instagram.com',      a:['instagr4m','instagramm','instagrm','1nstagram']},
+  {d:'twitter.com',        a:['tw1tter','twtter','twittter']},
+  {d:'dhl.com',            a:['dh1','dhl-express','dh1express']},
+  {d:'fedex.com',          a:['fedeks','fed-ex','fedex-delivery']},
+  {d:'ups.com',            a:['upp-s','ups-delivery','upss']},
+  {d:'irs.gov',            a:['irs-gov','irs-refund','irsgov']},
+];
+
+const SUSP_TLDS = ['.ru','.cn','.xyz','.tk','.pw','.top','.click','.loan','.win',
+  '.download','.bid','.stream','.review','.vip','.icu','.monster','.cyou','.gq','.cf','.ml','.ga','.info'];
+const SHORTENERS = ['bit.ly','tinyurl','t.co','goo.gl','ow.ly','is.gd','buff.ly','adf.ly',
+  'tiny.cc','rb.gy','cutt.ly','shorturl','clck.ru','rebrand.ly','short.io','bl.ink'];
+const DANGER_EXTS = ['.exe','.bat','.cmd','.vbs','.js','.ps1','.hta','.jar','.msi',
+  '.scr','.pif','.com','.lnk','.ws','.wsf','.reg','.dll'];
+const MACRO_EXTS  = ['docm','xlsm','pptm','xlsb','dotm','ppsm','doc','xls','ppt'];
+const CRITICAL_EXTS = ['xlsm','docm','xlsb','dotm','ppsm','zip','rar','7z','iso','img','vhd','lzh'];
+
+// Social engineering keyword banks
+const SE_SUBJECT  = ['urgent','immediately','verify','suspended','expire','compromised','unusual activity',
+  'act now','confirm','validate','alert','warning','account locked','last chance','final notice',
+  'acil','hemen','doğrula','askıya','şifre','hesap','kritik','son gün','ödeme','fatura','ceza','bloke',
+  'kilitli','önemli','bilgi güncelleme','güvenlik uyarısı','işlem onayı'];
+const SE_BODY     = ['dear customer','dear user','click here','log in','sign in','verify now',
+  'confirm your','update your','your account has been','we detected','suspicious activity',
+  'sayın müşteri','tıklayınız','hesabınız','doğrulama','acil','hemen giriş'];
+
+const currentMode = 'direct'; // v11.1
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — LOCAL STORAGE KEY MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+function saveKey(k, v) { try { localStorage.setItem('pg_key_'+k, v); } catch(e){} }
+function loadKey(k)    { try { return localStorage.getItem('pg_key_'+k) || ''; } catch(e){ return ''; } }
+function loadAllKeys() {
+  const ids = ['openai','anthropic','gemini','anyrun','vt','us','ab'];
+  ids.forEach(k => {
+    const el = document.getElementById(k+'-key') || document.getElementById(k.replace('anyrun','anyrun')+'-key');
+    if (el) el.value = loadKey(k);
+  });
+  // Also set ab-key
+  const abEl = document.getElementById('ab-key');
+  if (abEl) abEl.value = loadKey('ab');
+}
+window.addEventListener('DOMContentLoaded', function(){ /* v11: no API key fields */ });
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — AI HUB
+// ════════════════════════════════════════════════════════════════
+function selectAgent(a) {}
+function selectAgentResult(a) {}
+
+async function askAIResult() {
+  const btn = document.getElementById('ai-ask-btn-r');
+  const d = window._reportData;
+  if (!d) return;
+  btn.disabled = true;
+  document.getElementById('ai-btn-r-txt').textContent = '⏳ AI analiz ediyor...';
+  document.getElementById('ai-result-box-r').classList.remove('hidden');
+  const resultEl = document.getElementById('ai-result-content-r');
+  resultEl.innerHTML = '<div class="ai-result-hdr">AI ANALİZ YÜKLÜYOR...</div><span class="ai-typing"></span>';
+
+  const techSummary = buildTechSummaryForAI(d);
+  try {
+    const response = await callAIAgent(selectedAgentResult, techSummary);
+    resultEl.innerHTML = `<div class="ai-result-hdr">${getAgentLabel(selectedAgentResult)} — FORENSIC YORUM + MÜDAHALE TAVSİYESİ</div>${response}`;
+  } catch(e) {
+    resultEl.innerHTML = `<div class="ai-result-hdr" style="color:var(--flame)">HATA</div>${e.message}`;
+  }
+  document.getElementById('ai-btn-r-txt').textContent = '🔄 TEKRAR SORGULA';
+  btn.disabled = false;
+}
+
+function buildTechSummaryForAI(d) {
+  const topFindings = d.findings.filter(f=>f.l==='HIGH').slice(0,8).map(f=>`- [${f.l}] ${f.t}${f.mitre?' ('+f.mitre.id+')':''}`).join('\n');
+  const mitreIds = [...new Set(d.findings.filter(f=>f.mitre).map(f=>f.mitre.id))].join(', ');
+  const topURLs = d.urls.filter(u=>u.risk!=='safe').slice(0,5).map(u=>`${u.url.substring(0,60)} [${u.risk}] ${u.reason}`).join('\n');
+  const topIOCs = d.iocs.slice(0,8).map(i=>`[${i.type}] ${i.val.substring(0,50)}`).join('\n');
+  return `Sen deneyimli bir siber güvenlik analistinin asistanısın. Aşağıdaki otomatik e-posta tehdit analizi bulgularını değerlendirerek:
+1. Kısa bir "YÖNETİCİ ÖZETİ" yaz (3-5 cümle, teknik olmayan dil).
+2. "TEKNİK MÜDAHALE TAVSİYESİ" listesi oluştur (madde madde, öncelikli sırada).
+3. "SALDIRI SENARYOSU" yorumu yap: Bu saldırı nasıl gerçekleşiyor olabilir?
+
+--- BULGULAR ---
+Risk Skoru: ${d.score}/100 | Karar: ${d.verdict}
+SPF: ${d.auth.spf.s} | DKIM: ${d.auth.dkim.s} | DMARC: ${d.auth.dmarc.s}
+From: ${d.from}
+Return-Path: ${d.rp||'yok'}
+Reply-To: ${d.replyTo||'yok'}
+Subject: ${d.subj}
+HTML Smuggling: ${d.smuggleHits?.join(', ')||'yok'}
+Unicode Saldırısı: ${d.unicodeHits?.map(u=>u.hex).join(', ')||'yok'}
+Spam SCL: ${d.spamData?.scl??'—'}
+
+MITRE ATT&CK Teknikleri: ${mitreIds||'tespit edilmedi'}
+
+ÖNEMLİ BULGULAR:
+${topFindings||'yok'}
+
+ŞÜPHELİ URL'LER:
+${topURLs||'yok'}
+
+IOC'LER:
+${topIOCs||'yok'}
+--- SON ---
+Yanıtını Türkçe yaz. Kısa, net ve uygulanabilir ol.`;
+}
+
+async function callAIAgent(agent, prompt) {
+  const maxTokens = 800;
+  if (agent === 'anthropic') {
+    const key = loadKey('anthropic');
+    if (!key) return simulateAIResponse(agent, window._reportData);
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return (d.content?.[0]?.text||'').replace(/\n/g,'<br>');
+  }
+  if (agent === 'openai') {
+    const key = loadKey('openai');
+    if (!key) return simulateAIResponse(agent, window._reportData);
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({model:'gpt-4o',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return (d.choices?.[0]?.message?.content||'').replace(/\n/g,'<br>');
+  }
+  if (agent === 'gemini') {
+    const key = loadKey('gemini');
+    if (!key) return simulateAIResponse(agent, window._reportData);
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:maxTokens}})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return (d.candidates?.[0]?.content?.parts?.[0]?.text||'').replace(/\n/g,'<br>');
+  }
+  return simulateAIResponse(agent, window._reportData);
+}
+
+function simulateAIResponse(agent, d) {
+  const agentName = getAgentLabel(agent);
+  const s = d.score;
+  const verdict = s >= 65 ? 'yüksek riskli ve kötü amaçlı' : s >= 30 ? 'şüpheli' : 'düşük riskli';
+  const topMitre = [...new Set(d.findings.filter(f=>f.mitre).map(f=>f.mitre.id))].slice(0,3).join(', ') || 'tespit edilmedi';
+  const sponsoredNote = `<div style="font-family:var(--mono);font-size:8px;color:var(--t3);margin-bottom:8px;padding:4px 8px;background:var(--bg2);border-radius:2px;border:1px solid var(--line)">⚠ API KEY GİRİLMEDİ — Simüle edilmiş yanıt. Gerçek ${agentName} API key'ini üste girin.</div>`;
+  const html = `<strong style="color:var(--acid)">▶ YÖNETİCİ ÖZETİ</strong><br>
+Bu e-posta, ${s}/100 risk skoru ile <strong style="color:${s>=65?'var(--flame)':s>=30?'var(--amber)':'var(--acid)'}">${verdict}</strong> olarak değerlendirilmiştir.
+${d.auth.spf.s !== 'PASS' || d.auth.dkim.s !== 'PASS' ? 'E-posta kimlik doğrulaması başarısız olmuştur; bu, gönderenin gerçekliğini ciddi şekilde sorgulatmaktadır.' : ''}
+${d.smuggleHits?.length ? 'HTML smuggling tekniği tespit edilmiştir; bu saldırı türü güvenlik duvarlarını atlayabilir.' : ''}
+${d.lookalikes.length ? `"${d.lookalikes[0]?.fake}" gibi sahte domain tespiti, hedefe yönelik bir phishing kampanyasına işaret etmektedir.` : ''}
+<br><br>
+<strong style="color:var(--acid)">▶ TEKNİK MÜDAHALE TAVSİYESİ</strong><br>
+${s >= 65 ? `1. Bu e-postayı <strong>derhal karantinaya alın</strong> ve gönderenin IP adresini (${d.allIPs[0]||'?'}) firewall/proxy üzerinde engelleyin.<br>
+2. Etkilenen kullanıcının kimlik bilgilerini <strong>sıfırlayın</strong> ve MFA kontrolü yapın.<br>
+3. Tespit edilen IOC'leri SIEM sistemine ekleyin: ${d.iocs.slice(0,3).map(i=>i.val.substring(0,30)).join(', ')}<br>
+4. ${topMitre} MITRE tekniklerine karşı EDR/IDS kurallarını güncelleyin.<br>
+5. Benzer içerikli e-postalar için mail gateway'de retroactive tarama başlatın.` :
+s >= 30 ? `1. E-postayı SOC ekibine <strong>manuel inceleme için yönlendirin</strong>.<br>
+2. Tespit edilen URL'leri VirusTotal/URLScan'de manuel kontrol edin.<br>
+3. Kullanıcıya şüpheli e-posta konusunda <strong>bilgilendirme yapın</strong>.<br>
+4. 24 saat boyunca kullanıcı aktivitesini izleyin.` :
+`1. Şu an için acil aksiyon gerekmemektedir.<br>
+2. Log kaydı tutmaya devam edin.<br>
+3. Benzer e-postalar için kuralları güncel tutun.`}
+<br><br>
+<strong style="color:var(--acid)">▶ SALDIRI SENARYOSU</strong><br>
+${s >= 65 ? `Muhtemelen hedefe yönelik (spear phishing) bir kampanya. Saldırgan, ${d.from} adresini taklit ederek kullanıcıyı sahte bir platforma yönlendirmeye veya kötü amaçlı dosya çalıştırmaya teşvik etmeye çalışıyor. ${topMitre} tekniklerinin kullanımı, gelişmiş tehdit aktörü (APT) profilini işaret edebilir.` : s >= 30 ? `Otomatik phishing kampanyasının parçası olabilir. Düşük ama izlenmesi gereken bir risk profili.` : `Standart görünümlü e-posta. Belirgin saldırı senaryosu tespit edilmedi.`}`;
+  return sponsoredNote + html;
+}
+
+function getAgentLabel(a) {
+  return {openai:'OpenAI GPT-4o', anthropic:'Claude Sonnet', gemini:'Gemini 1.5 Pro'}[a] || a;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — SANDBOX BRIDGE
+// ════════════════════════════════════════════════════════════════
+let sbSentCount = 0;
+function renderSandboxURLs(urls) {
+  const container = document.getElementById('sandbox-results-urls');
+  if (!container) return;
+  const suspURLs = urls.filter(u => u.risk !== 'safe').slice(0, 10);
+  if (!suspURLs.length) {
+    container.innerHTML = `<div class="empty empty-ok">✔ Şüpheli URL tespit edilmedi.</div>`;
+    return;
+  }
+  document.getElementById('sb-total').textContent = suspURLs.length;
+  document.getElementById('sb-pending').textContent = suspURLs.length;
+  document.getElementById('sb-sent').textContent = '0';
+
+  container.innerHTML = suspURLs.map((u, i) => {
+    const enc = encodeURIComponent(u.url);
+    const vtUrl = `https://www.virustotal.com/gui/url/${btoa(u.url).replace(/=/g,'')}/detection`;
+    const usUrl = `https://urlscan.io/search/#page.url:${enc}`;
+    const arUrl = `https://app.any.run/tasks/create?url=${enc}`;
+    return `<div class="sb-url-row" id="sbrow-${i}">
+      <span class="risk-chip ${u.risk==='danger'?'rc-H':'rc-M'}" style="flex-shrink:0">${u.risk.toUpperCase()}</span>
+      <span class="sb-url-text" title="${esc(u.url)}">${esc(u.url.substring(0,65))}${u.url.length>65?'…':''}</span>
+      <div class="url-ext-btns">
+        <a class="url-ext-btn ueb-vt" href="${vtUrl}" target="_blank" onclick="markSbSent(${i})">🔵 VT</a>
+        <a class="url-ext-btn ueb-us" href="${usUrl}" target="_blank" onclick="markSbSent(${i})">🟡 URLScan</a>
+        <a class="url-ext-btn ueb-sb" href="${arUrl}" target="_blank" onclick="markSbSent(${i})">🟣 Any.run</a>
+      </div>
+      <span class="sb-status sb-s-pending" id="sbs-${i}">BEKLIYOR</span>
+    </div>`;
+  }).join('');
+}
+function markSbSent(i) {
+  const el = document.getElementById('sbs-'+i);
+  if (el && !el.classList.contains('sb-s-sent')) {
+    el.className = 'sb-status sb-s-sent'; el.textContent = 'GÖNDERİLDİ';
+    sbSentCount++;
+    document.getElementById('sb-sent').textContent = sbSentCount;
+    const pending = parseInt(document.getElementById('sb-pending').textContent) - 1;
+    document.getElementById('sb-pending').textContent = Math.max(0, pending);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — INCONSISTENCY MATRIX RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderInconsistencyMatrix(result) {
+  const c = document.getElementById('incon-matrix-container');
+  if (!c) return;
+  const fromDom  = extractDomain(result.from);
+  const rpDom    = extractDomain(result.rp);
+  const rtDom    = extractDomain(result.replyTo);
+  const midDom   = extractDomain(result.hdrA.find(h=>h.k.toLowerCase()==='message-id')?.v||'');
+  const xmailDom = extractDomain(result.xMailer||'');
+
+  function compare(a, b) {
+    if (!a && !b) return 'empty';
+    if (!a || !b) return 'empty';
+    if (a === b) return 'match';
+    return 'nomatch';
+  }
+
+  const rows = [
+    {field:'FROM', val1: fromDom||'—', val2: fromDom||'—', verdict:'ok', note:'Referans'},
+    {field:'RETURN-PATH', val1: fromDom||'—', val2: rpDom||'YOK', verdict: compare(fromDom,rpDom), note: fromDom&&rpDom&&fromDom!==rpDom?'SPOOFİNG':'OK'},
+    {field:'REPLY-TO', val1: fromDom||'—', val2: rtDom||'YOK', verdict: compare(fromDom,rtDom), note: fromDom&&rtDom&&fromDom!==rtDom?'HİJACK':'OK'},
+    {field:'MESSAGE-ID', val1: fromDom||'—', val2: midDom||'YOK', verdict: compare(fromDom,midDom), note: fromDom&&midDom&&fromDom!==midDom?'SAHTE':'OK'},
+  ];
+
+  let html = `<div class="incon-row header-row">
+    <div class="incon-field">HEADER</div>
+    <div>FROM DOMAIN</div>
+    <div>HEADER DEĞERİ</div>
+    <div>DURUM</div>
+  </div>`;
+
+  rows.forEach(row => {
+    const cls1 = 'match';
+    const cls2 = row.verdict;
+    const vclass = row.verdict === 'match' ? 'iv-ok' : row.verdict === 'nomatch' ? 'iv-bad' : row.verdict === 'empty' ? 'iv-none' : 'iv-warn';
+    const vtext  = row.verdict === 'match' ? '✓ UYUMLU' : row.verdict === 'nomatch' ? '✗ UYUŞMAZ' : '— YOK';
+    html += `<div class="incon-row">
+      <div class="incon-field">${row.field}</div>
+      <div class="incon-val ${cls1}" style="max-width:130px" title="${esc(row.val1)}">${esc(row.val1.substring(0,28))}</div>
+      <div class="incon-val ${cls2}" style="max-width:130px" title="${esc(row.val2)}">${esc(row.val2.substring(0,28))}</div>
+      <div class="incon-verdict ${vclass}">${vtext}</div>
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — MITRE HEATMAP RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderMitreHeatmap(result) {
+  const container = document.getElementById('mitre-heatmap-container');
+  if (!container) return;
+
+  // Count hits per technique
+  const counts = {};
+  result.findings.forEach(f => {
+    if (f.mitre) counts[f.mitre.id] = (counts[f.mitre.id]||0) + 1;
+  });
+  const maxCount = Math.max(1, ...Object.values(counts));
+
+  // Tactic ordering
+  const TACTICS_ORDER = ['Initial Access','Execution','Persistence','Defense Evasion','Collection','Command and Control','Lateral Movement'];
+  const byTactic = {};
+  Object.values(M).forEach(tech => {
+    const t = tech.tactic||'Other';
+    if (!byTactic[t]) byTactic[t] = [];
+    if (!byTactic[t].find(x=>x.id===tech.id)) byTactic[t].push(tech);
+  });
+
+  const ordered = [...TACTICS_ORDER.filter(t=>byTactic[t]), ...Object.keys(byTactic).filter(t=>!TACTICS_ORDER.includes(t))];
+
+  let html = '<div class="mitre-heatmap">';
+  ordered.forEach(tactic => {
+    const techs = byTactic[tactic]||[];
+    html += `<div class="hm-tactic-row">
+      <div class="hm-tactic-label">${tactic}</div>
+      <div class="hm-cells">`;
+    techs.forEach(tech => {
+      const cnt = counts[tech.id]||0;
+      const intensity = cnt === 0 ? 0 : cnt === 1 ? 1 : cnt === 2 ? 2 : cnt === 3 ? 3 : 4;
+      html += `<div class="hm-cell hm-${intensity}" title="${tech.id}: ${tech.name}${cnt?' ('+cnt+' tespit)':''}">
+        <div class="hm-cell-id">${tech.id}</div>
+        <div class="hm-cell-name">${tech.name.length>18?tech.name.substring(0,16)+'…':tech.name}</div>
+        ${cnt > 0 ? `<div style="position:absolute;top:3px;right:4px;font-family:var(--mono);font-size:7px;font-weight:700">${cnt}</div>` : ''}
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  // Legend
+  html += `<div class="hm-legend">
+    <div class="hm-leg-item"><div class="hm-leg-box" style="background:var(--bg2);border:1px solid var(--line)"></div>0 — Tespit yok</div>
+    <div class="hm-leg-item"><div class="hm-leg-box" style="background:rgba(155,89,245,.12);border:1px solid rgba(155,89,245,.3)"></div>1 — Düşük</div>
+    <div class="hm-leg-item"><div class="hm-leg-box" style="background:rgba(155,89,245,.22);border:1px solid rgba(155,89,245,.5)"></div>2 — Orta</div>
+    <div class="hm-leg-item"><div class="hm-leg-box" style="background:rgba(255,69,69,.18);border:1px solid rgba(255,69,69,.5)"></div>3 — Yüksek</div>
+    <div class="hm-leg-item"><div class="hm-leg-box" style="background:rgba(255,69,69,.3);border:1px solid var(--flame)"></div>4+ — KRİTİK</div>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — EVIDENCE CANVAS RENDERER (glow highlights)
+// ════════════════════════════════════════════════════════════════
+function renderEvidenceCanvas(parsed, result) {
+  const container = document.getElementById('evidence-canvas-container');
+  if (!container || !parsed) return;
+  const {hdrLines} = parsed;
+
+  let html = '';
+  hdrLines.forEach((h, idx) => {
+    const kl = h.k.toLowerCase();
+    let cls = 'evc-normal', valCls = '', badges = [], note = '';
+
+    const hr = result.hdrA.find(x => x.k === h.k);
+    if (hr?.risk === 'danger') { cls = 'evc-danger'; valCls = 'v-danger'; }
+    else if (hr?.risk === 'warn') { cls = 'evc-warn'; valCls = 'v-warn'; }
+
+    // RTL/Unicode
+    const uHits = Object.entries(HIDDEN_CHAR_MAP).filter(([ch]) => h.v.includes(ch));
+    if (uHits.length) {
+      cls = 'evc-rtl'; valCls = 'v-rtl';
+      uHits.forEach(([,info]) => badges.push({c:'evb-rtl', t:info.hex}));
+      note = `🔴 Görünmez karakter saldırısı tespit edildi! ${uHits.map(([,i])=>i.name+' ('+i.hex+')').join(', ')}. ${uHits.some(([ch])=>['\u202E','\u202B'].includes(ch)) ? 'RTL Override: dosya adı veya metin ters çevrilebilir.' : 'Spam bypass / keyword splitting için kullanılıyor olabilir.'} → MITRE ${M.UNICODE.id}`;
+    }
+
+    // Base64
+    if (/base64/i.test(h.v)) {
+      if (cls === 'evc-normal') cls = 'evc-b64';
+      badges.push({c:'evb-b64', t:'BASE64'});
+      if (!note) note = `Base64 encoding tespit edildi. Payload gizleme amacıyla kullanılıyor olabilir → ${M.OBFUSC.id}`;
+    }
+
+    // Mismatch checks
+    if (kl === 'return-path') {
+      const rp = extractDomain(h.v), fr = extractDomain(result.from);
+      if (rp && fr && rp !== fr) {
+        cls = 'evc-mismatch';
+        badges.push({c:'evb-mismatch', t:'MISMATCH'});
+        note = `⚡ Return-Path (${rp}) ≠ From (${fr}). Bu domain yasal görünse bile uyuşmazlık, hacklenmiş bir ESP veya sahte gönderim altyapısını işaret eder → ${M.SPOOF.id}`;
+      }
+    }
+    if (kl === 'reply-to') {
+      const rt = extractDomain(h.v), fr = extractDomain(result.from);
+      if (rt && fr && rt !== fr) {
+        if (cls === 'evc-normal') cls = 'evc-mismatch';
+        badges.push({c:'evb-mismatch', t:'REPLY HIJACK'});
+        note = `⚡ Reply-To (${rt}) farklı domain'e yönlendiriyor. Kullanıcı yanıt verdiğinde mesaj saldırgana gidecek → ${M.SPOOF.id}`;
+      }
+    }
+    if (kl === 'x-spam-status' && /yes/i.test(h.v)) {
+      cls = 'evc-danger';
+      badges.push({c:'evb-danger', t:'SPAM:YES'});
+      note = 'Spam filtresi bu mesajı YES olarak işaretlemiş ancak mesaj yine de teslim edilmiş. Delivery policy kontrolü gereklidir.';
+    }
+    if (hr?.risk === 'danger') badges.push({c:'evb-danger', t:'HIGH RISK'});
+    else if (hr?.risk === 'warn' && !badges.length) badges.push({c:'evb-warn', t:'WARN'});
+
+    const badgesHtml = badges.length ? `<span class="evc-badges">${badges.map(b=>`<span class="evc-badge ${b.c}">${b.t}</span>`).join('')}</span>` : '';
+    const noteHtml = note ? `<div class="evc-note">🔍 ${esc(note)}</div>` : '';
+
+    html += `<div class="evc-line ${cls}">
+      <span class="evc-lnum">${idx+1}</span><span class="evc-key">${esc(h.k)}:</span> <span class="evc-val ${valCls}">${esc(h.v.substring(0,120))}${h.v.length>120?'…':''}</span>${badgesHtml}
+      ${noteHtml}
+    </div>`;
+  });
+  container.innerHTML = html || '<div class="empty">Header verisi yok.</div>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — FORENSIC SUMMARY HEADER RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderForensicSummary(result) {
+  const c = document.getElementById('fs-meta');
+  if (!c) return;
+  const mitreIds = [...new Set(result.findings.filter(f=>f.mitre).map(f=>f.mitre.id))].slice(0,4);
+  const items = [
+    {k:'RİSK SKORU', v:`${result.score}/100 — ${result.verdict}`},
+    {k:'GÖNDEREN', v:result.from||'—'},
+    {k:'RETURN-PATH', v:result.rp||'YOK'},
+    {k:'SPF/DKIM/DMARC', v:`${result.auth.spf.s} / ${result.auth.dkim.s} / ${result.auth.dmarc.s}`},
+    {k:'MITRE TEKNİKLERİ', v:mitreIds.join(', ')||'—'},
+    {k:'IOC SAYISI', v:result.iocs.length+''},
+    {k:'HTML SMUGGLING', v:result.smuggleHits?.length?'TESPİT EDİLDİ':'YOK'},
+    {k:'ANALİZ TARİHİ', v:new Date().toLocaleString('tr-TR')},
+  ];
+  c.innerHTML = items.map(i=>`<div class="fs-meta-item">
+    <div class="fs-meta-key">${i.k}</div>
+    <div class="fs-meta-val" title="${esc(i.v)}">${esc(i.v.substring(0,30))}</div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v8.0 — URL TABLE WITH EXTERNAL BUTTONS
+// ════════════════════════════════════════════════════════════════
+function renderURLTableV8(urls, ctiData) {
+  const uc = document.getElementById('url-container') || document.getElementById('url-analysis-table') || document.getElementById('url-table');
+  if (!uc) return;
+  if (!urls.length) { uc.innerHTML = '<div class="empty">URL bulunamadı.</div>'; return; }
+  uc.innerHTML = `<table class="url-table"><thead><tr><th>URL</th><th>RİSK</th><th>AÇIKLAMA</th><th>ANALİZ</th></tr></thead><tbody>
+  ${urls.slice(0,10).map((u,idx) => {
+    const enc = encodeURIComponent(u.url);
+    const domainForVT = u.dom || extractDomain(u.url);
+    const vtDomUrl = domainForVT ? `https://www.virustotal.com/gui/domain/${domainForVT}` : `https://www.virustotal.com/gui/url/${enc}/detection`;
+    const usUrl  = `https://urlscan.io/search/#page.url:${enc}`;
+    const arUrl  = `https://app.any.run/tasks/create?url=${enc}`;
+    const uColor = u.risk==='danger'?'#ff4545':u.risk==='warn'?'#ff7a00':'#00cc66';
+    return `<tr>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${uColor}" title="${esc(u.url)}">${esc(u.url.substring(0,48))}${u.url.length>48?'…':''}</td>
+      <td><span class="risk-chip ${u.risk==='danger'?'rc-H':u.risk==='warn'?'rc-M':'rc-L'}">${u.risk.toUpperCase()}</span></td>
+      <td style="color:var(--t2);font-size:10px">${esc(u.reason||'N/A')}</td>
+      <td>
+        <div class="url-ext-btns">
+          <a class="cti-btn cti-vt" href="${vtDomUrl}" target="_blank" title="VirusTotal — Domain/URL Analiz">🔵 VT</a>
+          <a class="url-ext-btn ueb-us" href="${usUrl}" target="_blank" title="URLScan.io">🟡 URLScan</a>
+          <a class="url-ext-btn ueb-sb" href="${arUrl}" target="_blank" title="Any.run Sandbox">🟣 Any.run</a>
+        </div>
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table>`;
+}
+
+
+
+// ════════════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════════════
+const sl = ms => new Promise(r => setTimeout(r, ms));
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function extractDomain(s) {
+  if (!s) return '';
+  const m = s.match(/https?:\/\/([^\/\s?#:]+)/) ||
+            s.match(/[@<]([a-zA-Z0-9.\-]+\.[a-zA-Z]{2,8})[\s>]/) ||
+            s.match(/([a-zA-Z0-9.\-]+\.[a-zA-Z]{2,8})/);
+  return m ? m[1].toLowerCase().replace(/^www\./, '') : '';
+}
+function isPrivateIP(ip) { return /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|::1)/.test(ip); }
+function isIPUrl(u)      { return /https?:\/\/\d{1,3}\.\d{1,3}/.test(u); }
+
+function shannonEntropy(s) {
+  const f = {}; for (const c of s) f[c] = (f[c] || 0) + 1;
+  const n = s.length;
+  return -Object.values(f).reduce((a, v) => { const p = v / n; return a + p * Math.log2(p); }, 0);
+}
+function isDGALike(d) {
+  const base = d.split('.')[0]; if (base.length < 6) return false;
+  const e = shannonEntropy(base);
+  const cr = (base.match(/[bcdfghjklmnpqrstvwxyz]/gi) || []).length / base.length;
+  const hasNum = /\d/.test(base);
+  return e > 3.4 || (cr > 0.75 && base.length > 8) || (hasNum && e > 3.0);
+}
+
+function levenshtein(a, b) {
+  const dp = Array.from({length: a.length + 1}, (_, i) => Array.from({length: b.length + 1}, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[a.length][b.length];
+}
+function strSim(a, b) { return 1 - levenshtein(a, b) / Math.max(a.length, b.length); }
+
+const GLYPH = {'0':'o','1':'l','3':'e','4':'a','5':'s','@':'a','$':'s','!':'i','|':'l','ı':'i','ş':'s','ğ':'g','ü':'u','ö':'o','ç':'c','İ':'i'};
+function normalizeGlyph(s) { return s.toLowerCase().split('').map(c => GLYPH[c] || c).join(''); }
+
+function detectHidden(text) {
+  const r = [];
+  ['\u200B','\u200C','\u200D','\uFEFF','\u00AD','\u2060'].forEach(c => {
+    if (text.includes(c)) r.push(`Zero-width karakter U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')}`);
+  });
+  if (/font-size\s*:\s*0/.test(text)) r.push('CSS font-size:0 spam bypass tekniği');
+  if (/visibility\s*:\s*hidden/i.test(text)) r.push('visibility:hidden ile gizlenmiş içerik');
+  if (/color\s*:\s*#(f{3,6}|FFF)/i.test(text)) r.push('Beyaz üzerine beyaz metin (renk gizleme)');
+  if (/display\s*:\s*none/i.test(text)) r.push('display:none ile gizlenmiş içerik');
+  return r;
+}
+
+function findBase64(text) {
+  const re = /[A-Za-z0-9+\/]{20,}={0,2}/g; const res = []; let m;
+  while ((m = re.exec(text)) !== null) {
+    try { const d = atob(m[0]); if (/^[\x20-\x7E]+$/.test(d) && d.length > 6) res.push({enc: m[0].substring(0,40), dec: d.substring(0,200)}); }
+    catch(e) {}
+  }
+  return res;
+}
+
+function parseReplyRoot(rt) {
+  const d = extractDomain(rt); if (!d) return null;
+  const parts = d.split('.');
+  const TR_TLDS = ['com.tr','net.tr','org.tr','gov.tr','edu.tr','bel.tr'];
+  const last2 = parts.slice(-2).join('.');
+  return TR_TLDS.includes(last2) ? parts.slice(-3).join('.') : last2;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  IP LOOKUP (ip-api.com — free, no key)
+// ════════════════════════════════════════════════════════════════
+async function lookupIP(ip) {
+  try {
+    const r = await fetch(`https://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,isp,org,as,proxy,hosting,query`, {signal: AbortSignal.timeout(5000)});
+    const d = await r.json();
+    if (d.status === 'success') return {
+      ip: d.query, country: d.country, cc: (d.countryCode||'').toLowerCase(),
+      region: d.regionName, city: d.city, isp: d.isp, org: d.org, asn: d.as,
+      proxy: d.proxy, hosting: d.hosting, flag: countryFlag(d.countryCode), source: 'ip-api.com'
+    };
+  } catch(e) {}
+  return {ip, country:'Unknown', cc:'', isp:'Unknown', org:'Unknown', asn:'', proxy:false, hosting:false, flag:'🌐', source:'heuristic'};
+}
+
+async function lookupAbuseIPDB(ip, key) {
+  if (!key) return null;
+  try {
+    const r = await fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${ip}&maxAgeInDays=90`, {
+      headers: {'Key': key, 'Accept': 'application/json'}, signal: AbortSignal.timeout(6000)
+    });
+    const d = await r.json();
+    if (d.data) return {abuseScore: d.data.abuseConfidenceScore, totalReports: d.data.totalReports, usageType: d.data.usageType};
+  } catch(e) {}
+  return null;
+}
+
+async function lookupURLScan(url, key) {
+  if (!key || !url) return null;
+  try {
+    const r = await fetch('https://urlscan.io/api/v1/search/?q=page.url:'+encodeURIComponent(url)+'&size=1', {
+      headers: {'API-Key': key}, signal: AbortSignal.timeout(6000)
+    });
+    const d = await r.json();
+    if (d.results && d.results.length > 0) {
+      const res = d.results[0];
+      return {malicious: res.verdicts?.overall?.malicious || false, tags: res.verdicts?.overall?.tags || []};
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function lookupVT(url, key) {
+  if (!key || !url) return null;
+  try {
+    const id = btoa(url).replace(/=/g,'');
+    const r = await fetch(`https://www.virustotal.com/api/v3/urls/${id}`, {
+      headers: {'x-apikey': key}, signal: AbortSignal.timeout(8000)
+    });
+    const d = await r.json();
+    if (d.data) {
+      const stats = d.data.attributes?.last_analysis_stats || {};
+      return {malicious: stats.malicious || 0, suspicious: stats.suspicious || 0, total: Object.values(stats).reduce((a,v)=>a+v,0)};
+    }
+  } catch(e) {}
+  return null;
+}
+
+function countryFlag(cc) {
+  if (!cc || cc.length !== 2) return '🌐';
+  return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+
+function ipRepScore(geo, abuse) {
+  let s = 70;
+  if (geo.hosting) s -= 28;
+  if (geo.proxy)   s -= 22;
+  if (['ru','cn','kp','ir','by','ve'].includes(geo.cc)) s -= 18;
+  if (abuse) { s -= Math.min(50, Math.round(abuse.abuseScore / 2)); }
+  return Math.max(0, Math.min(100, s));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EMAIL PARSER
+// ════════════════════════════════════════════════════════════════
+function parseEmail(raw) {
+  const lines = raw.split(/\r?\n/);
+  const headers = {}, hdrLines = []; let cur = null, bodyStart = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l.trim() === '') { bodyStart = i + 1; break; }
+    if (/^\s/.test(l) && cur) { headers[cur] += ' ' + l.trim(); hdrLines[hdrLines.length-1].v += ' ' + l.trim(); }
+    else {
+      const m = l.match(/^([^:]+):\s*(.*)/);
+      if (m) { cur = m[1].toLowerCase().trim(); headers[cur] = (headers[cur] ? headers[cur]+'\n' : '') + m[2].trim(); hdrLines.push({k: m[1].trim(), v: m[2].trim()}); }
+    }
+  }
+  const body = lines.slice(bodyStart).join('\n');
+  return {headers, hdrLines, body, raw};
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ANALYSIS ENGINE
+// ════════════════════════════════════════════════════════════════
+function runAnalysis(parsed) {
+  const {headers, hdrLines, body, raw} = parsed;
+  const findings = []; let score = 0;
+  const get = k => headers[k.toLowerCase()] || '';
+  const getAll = k => (headers[k.toLowerCase()] || '').split('\n').filter(Boolean);
+  const add = (l, t, mitre) => findings.push({l, t, mitre});
+
+  const from = get('from'), rp = get('return-path'), replyTo = get('reply-to'), subj = get('subject');
+  const contentType = get('content-type'), xMailer = get('x-mailer');
+  const fromDomain = extractDomain(from), rpDomain = extractDomain(rp), rtDomain = extractDomain(replyTo);
+
+  // ── 1. FROM / RETURN-PATH MISMATCH ────────────────────────────
+  let domMismatch = false;
+  if (fromDomain && rpDomain && fromDomain !== rpDomain) {
+    domMismatch = true; score += 25;
+    add('HIGH', `From (${fromDomain}) ↔ Return-Path (${rpDomain}) domain uyuşmazlığı — spoofing`, M.SPOOF);
+  }
+
+  // ── 2. REPLY-TO DEEP PARSE ────────────────────────────────────
+  if (rtDomain && rtDomain !== fromDomain) {
+    const realRoot = parseReplyRoot(replyTo);
+    score += 18;
+    add('HIGH', `Reply-To farklı domain: "${rtDomain}" → gerçek kök: "${realRoot||rtDomain}"`, M.SPOOF);
+    if (rtDomain.split('.').length > 3) {
+      score += 12; add('HIGH', `Reply-To subdomain padding: "${rtDomain}" — gizlenmiş gerçek alıcı`, M.IMPERSON);
+    }
+  }
+
+  // ── 3. RECEIVED CHAIN ─────────────────────────────────────────
+  const rcvList = getAll('received');
+  const timeline = [];
+  let prevTime = null;
+  rcvList.forEach((r, i) => {
+    const ipM = r.match(/\[?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]?/);
+    const ip = ipM ? ipM[1] : '';
+    const fmM = r.match(/from\s+([^\s(]+)/i), byM = r.match(/by\s+([^\s(]+)/i);
+    const tsM = r.match(/;\s*(.+)$/);
+    const server = fmM ? fmM[1] : (byM ? byM[1] : 'Unknown');
+    const isPriv = ip && isPrivateIP(ip);
+    const susp = isPriv || SUSP_TLDS.some(t => server.endsWith(t));
+    if (isPriv && i < rcvList.length - 1) { score += 10; add('MEDIUM', `Received zincirinde private IP: ${ip} — internal relay kötüye kullanımı`, M.RELAY); }
+    timeline.push({server, ip, ts: tsM ? tsM[1].trim().substring(0, 60) : '', susp});
+  });
+  if (rcvList.length > 4) { score += 8; add('MEDIUM', `Uzun Received zinciri (${rcvList.length} hop) — relay abuse göstergesi`, M.RELAY); }
+  if (rcvList.length === 0) { score += 5; add('LOW', 'Received header yok — direkt inject edilmiş olabilir', M.RELAY); }
+
+  // ── 4. SUSPICIOUS TLDS ────────────────────────────────────────
+  SUSP_TLDS.forEach(t => {
+    if ([from, rp, replyTo].some(s => s.includes(t))) { score += 18; add('HIGH', `Şüpheli TLD: ${t} — yüksek risk coğrafya`, M.IMPERSON); }
+  });
+
+  // ── 5. SPF / DKIM / DMARC + TRUST BALANCING ──────────────────
+  const auth = {
+    spf:  {s:'NONE', d:'Header bulunamadı', ov:false},
+    dkim: {s:'NONE', d:'Header bulunamadı', ov:false},
+    dmarc:{s:'NONE', d:'Header bulunamadı', ov:false}
+  };
+  const ar = get('authentication-results') || get('arc-authentication-results') || '';
+  const spfRaw = get('received-spf') || ar;
+  if      (/spf=pass/i.test(spfRaw))    { auth.spf = {s:'PASS',    d:'SPF doğrulandı', ov:false}; }
+  else if (/spf=fail/i.test(spfRaw))    { auth.spf = {s:'FAIL',    d:'SPF başarısız',  ov:false}; score+=20; add('HIGH','SPF FAIL — gönderen IP yetkisiz',M.SPOOF); }
+  else if (/spf=softfail/i.test(spfRaw)){ auth.spf = {s:'SOFTFAIL',d:'~all softfail',  ov:false}; score+=10; add('MEDIUM','SPF SoftFail — zayıf politika',M.SPOOF); }
+  else if (/spf=neutral/i.test(spfRaw)) { auth.spf = {s:'NEUTRAL', d:'SPF neutral',    ov:false}; score+=5; }
+  if      (/dkim=pass/i.test(ar))       { auth.dkim = {s:'PASS', d:'DKIM imzası geçerli',ov:false}; }
+  else if (/dkim=fail/i.test(ar))       { auth.dkim = {s:'FAIL', d:'İmza geçersiz',      ov:false}; score+=15; add('HIGH','DKIM FAIL — mesaj içeriği manipüle edilmiş',M.OBFUSC); }
+  else if (get('dkim-signature'))        { auth.dkim = {s:'PASS', d:'İmza header mevcut',ov:false}; }
+  if      (/dmarc=pass/i.test(ar))      { auth.dmarc = {s:'PASS', d:'DMARC politikası geçti',ov:false}; }
+  else if (/dmarc=fail/i.test(ar))      { auth.dmarc = {s:'FAIL', d:'DMARC başarısız',     ov:false}; score+=20; add('HIGH','DMARC FAIL — domain politikası ihlali',M.SPOOF); }
+
+  // TRUST BALANCING: all PASS + domain mismatch = neutralize trust bonus
+  let trustOverride = false;
+  if (auth.spf.s === 'PASS' && auth.dkim.s === 'PASS' && domMismatch) {
+    trustOverride = true; auth.spf.ov = true; auth.dkim.ov = true;
+    score += 15; add('HIGH','Trust Override: SPF+DKIM PASS ama domain mismatch → hacklenmiş ESP/relay',M.RELAY);
+  }
+  if (auth.spf.s === 'NONE' && auth.dkim.s === 'NONE' && auth.dmarc.s === 'NONE') {
+    score += 14; add('MEDIUM','SPF+DKIM+DMARC hepsi eksik — e-posta doğrulaması yok',M.SPOOF);
+  }
+
+  // ── 6. SUBJECT ANALYSIS ───────────────────────────────────────
+  const subjHits = SE_SUBJECT.filter(w => subj.toLowerCase().includes(w));
+  if (subjHits.length > 0) {
+    score += Math.min(subjHits.length * 6, 28);
+    add('MEDIUM', `Social engineering konu: "${subjHits.slice(0,3).join('", "')}"`, M.SOCIAL);
+  }
+  // Suspicious chars in subject
+  if (/[\u2800-\u28FF]/.test(subj)) { score += 15; add('HIGH','Subject\'de Braille karakterleri — spam bypass tekniği',M.HIDDEN); }
+  if ((subj.match(/[^\x00-\x7F]/g)||[]).length > 5) { score += 8; add('MEDIUM','Subject\'de yoğun unicode — karakter gizleme',M.OBFUSC); }
+
+  // ── 7. BODY ANALYSIS ──────────────────────────────────────────
+  const bodyLower = body.toLowerCase();
+  const bodyHits = SE_BODY.filter(w => bodyLower.includes(w));
+  const bodyAnalysis = [];
+  if (bodyHits.length > 0) bodyAnalysis.push({t:`SE keywords: ${bodyHits.slice(0,4).join(', ')}`, r:'MEDIUM'});
+  if (/password|passwd|şifre|parola/i.test(body)) bodyAnalysis.push({t:'Şifre toplama içeriği tespit edildi', r:'HIGH'});
+  if (/credit.?card|kart.?num|cvv|ccv/i.test(body)) bodyAnalysis.push({t:'Kredi kartı bilgisi talep ediliyor', r:'HIGH'});
+  if (/ssn|social.?security|tc.?kimlik|vergi.?num/i.test(body)) bodyAnalysis.push({t:'Kimlik/vergi numarası talep ediliyor', r:'HIGH'});
+  if (/iban|bic.?swift|hesap.?no|routing/i.test(body)) bodyAnalysis.push({t:'Banka hesap bilgisi talep ediliyor', r:'HIGH'});
+  if (/<form/i.test(body)) bodyAnalysis.push({t:'HTML form elemanı — veri toplama', r:'HIGH'});
+  if (/action\s*=\s*["']https?:/i.test(body)) bodyAnalysis.push({t:'Form action harici URL\'ye gönderiyor', r:'HIGH'});
+  if (/base64/i.test(body)) bodyAnalysis.push({t:'Base64 encoding referansı', r:'MEDIUM'});
+  bodyHits.slice(0,3).forEach(h => { if (['password','passwd','credit','ssn','iban'].some(k => h.includes(k))) { score += 15; add('HIGH', `Body credential harvesting: "${h}"`, M.COLLECT); } });
+  if (bodyHits.length > 2) { score += bodyHits.length * 4; }
+
+  // ── 8. X-MAILER / INFRASTRUCTURE ─────────────────────────────
+  if (/phpmailer|php\.?mailer/i.test(xMailer)) { score += 12; add('MEDIUM','X-Mailer: PHPMailer — otomatik bulk gönderim altyapısı',M.SOCIAL); }
+  if (/sendgrid|mailchimp|amazonses|sendpulse|getresponse/i.test(xMailer)) {
+    if (domMismatch) { score += 10; add('MEDIUM','Meşru ESP üzerinden gönderim + domain mismatch → compromised account',M.RELAY); }
+  }
+
+  // ── 9. URL ANALYSIS ───────────────────────────────────────────
+  const rawUrls = [...new Set((raw.match(/https?:\/\/[^\s"'<>)\]\r\n]+/gi) || []))];
+  const urls = rawUrls.map(u => {
+    let risk = 'safe', reason = 'Temiz URL', score_add = 0;
+    const dom = extractDomain(u);
+    if (SHORTENERS.some(s => u.includes(s)))           { risk = 'warn';   reason = 'URL kısaltma servisi — hedef gizlenmiş'; score_add = 8; }
+    if (DANGER_EXTS.some(e => u.toLowerCase().endsWith(e))) { risk = 'danger'; reason = 'Doğrudan yürütülebilir dosya indiriyor'; score_add = 22; }
+    if (isIPUrl(u))                                     { risk = 'danger'; reason = 'Domain yerine IP adresi kullanımı'; score_add = 15; }
+    if (/login|verify|secure|account|update|confirm|password|signin|giris|dogrula|hesap|banka/i.test(u)) {
+      const isLegit = BRANDS.some(b => dom === b.d || dom.endsWith('.' + b.d));
+      if (!isLegit) { risk = 'danger'; reason = 'Kimlik bilgisi toplama sayfası görünümlü URL'; score_add = Math.max(score_add, 18); }
+    }
+    if (isDGALike(dom) && risk === 'safe') { risk = 'warn'; reason = 'DGA/Yüksek entropy domain'; score_add = 10; }
+    if (SUSP_TLDS.some(t => dom.endsWith(t)) && risk !== 'danger') { risk = 'warn'; reason = 'Şüpheli TLD'; score_add = Math.max(score_add, 12); }
+    // puny code / IDN
+    if (/xn--/i.test(dom)) { risk = 'danger'; reason = 'IDN/Punycode domain — görünmez karakter kandırmacası'; score_add = 20; add('HIGH',`IDN domain: "${dom}"`,M.LOOKALIKE); }
+    score += score_add;
+    return {url: u, dom, risk, reason};
+  });
+
+  // href vs text mismatch
+  const hrefRe = /href=["']([^"']+)["'][^>]*>([^<]{4,80})</gi; let hm;
+  while ((hm = hrefRe.exec(raw)) !== null) {
+    const href = hm[1], txt = hm[2].trim();
+    const txtDom = extractDomain(txt);
+    if (txt.startsWith('http') && txtDom && !href.includes(txtDom)) {
+      score += 22; add('HIGH', `Gizli link: görünen "${txt.substring(0,35)}" ≠ gerçek "${extractDomain(href)}"`, M.URL_HIDE);
+    }
+  }
+
+  // ── 10. ALL DOMAINS — ENTROPY + LOOKALIKE ─────────────────────
+  const allDoms = [...new Set([fromDomain, rpDomain, rtDomain,
+    ...urls.map(u => u.dom), ...timeline.map(t => extractDomain(t.server))].filter(Boolean))];
+
+  const entropyFindings = [];
+  allDoms.forEach(d => {
+    if (isDGALike(d)) {
+      const e = shannonEntropy(d.split('.')[0]).toFixed(2);
+      entropyFindings.push({d, e}); score += 13;
+      add('HIGH', `DGA/Entropy domain: "${d}" (H=${e}) — botnet C2 göstergesi`, M.ENTROPY);
+    }
+  });
+
+  const lookalikes = []; const seen = new Set();
+  allDoms.forEach(d => {
+    BRANDS.forEach(brand => {
+      const key = d + '|' + brand.d;
+      if (seen.has(key) || d === brand.d) return;
+      const aliasHit = brand.a.some(a => d.includes(a) || normalizeGlyph(d).includes(a));
+      const s = strSim(normalizeGlyph(d), normalizeGlyph(brand.d));
+      const containsBase = d.includes(brand.d.split('.')[0]);
+      const glyphHit = normalizeGlyph(d) !== d && normalizeGlyph(d).includes(brand.d.split('.')[0]);
+      if (aliasHit || s >= 0.72 || containsBase || glyphHit) {
+        seen.add(key);
+        const simPct = s >= 0.72 ? Math.round(s*100)+'%' : glyphHit ? 'Homoglyph' : aliasHit ? 'Alias' : 'Substring';
+        lookalikes.push({orig: brand.d, fake: d, sim: simPct, ent: shannonEntropy(d.split('.')[0]).toFixed(2)});
+        score += 22; add('HIGH', `Look-alike: "${d}" → "${brand.d}" taklidi (${simPct})`, M.LOOKALIKE);
+      }
+    });
+  });
+
+  // ── 11. HIDDEN CHARS + BASE64 ─────────────────────────────────
+  const hiddenF = detectHidden(raw);
+  hiddenF.forEach(h => { score += 20; add('HIGH', `Gizli karakter tekniği: ${h}`, M.HIDDEN); });
+  const b64F = findBase64(raw);
+  const b64Doms = [];
+  b64F.forEach(b => {
+    const dom = extractDomain(b.dec);
+    if (dom) {
+      b64Doms.push({...b, domain: dom});
+      BRANDS.forEach(brand => {
+        if (strSim(normalizeGlyph(dom), normalizeGlyph(brand.d)) >= 0.72 || brand.a.some(a => dom.includes(a))) {
+          score += 25; add('HIGH', `Base64 decode → look-alike: "${dom}" → "${brand.d}"`, M.OBFUSC);
+        }
+      });
+      if (isDGALike(dom)) { score += 12; add('HIGH', `Base64 decode → DGA domain: "${dom}"`, M.ENTROPY); }
+    }
+  });
+
+  // ── 11b. HTML SMUGGLING DETECTION ─────────────────────────────
+  const smuggleHits = [];
+  const rawLower = raw.toLowerCase();
+  SMUGGLE_KEYWORDS.forEach(kw => {
+    const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+    if (re.test(raw)) smuggleHits.push(kw.replace(/\.\*/g,'…'));
+  });
+  // Check for download trigger pattern
+  const hasDownloadTrigger = /createObjectURL|msSaveBlob|msSaveOrOpenBlob/i.test(raw) ||
+    (/Blob/i.test(raw) && /click\(\)/i.test(raw));
+  if (smuggleHits.length > 0) {
+    if (hasDownloadTrigger) {
+      score = 100;
+      add('HIGH', `HTML SMUGGLING TESPİT EDİLDİ: Dosya indirme tetikleyicisi aktif (${smuggleHits.slice(0,3).join(', ')})`, M.SMUGGLE);
+    } else {
+      score = Math.min(100, score + 30);
+      add('HIGH', `HTML Obfuscation: Şüpheli JS anahtar kelimeler (${smuggleHits.slice(0,4).join(', ')})`, M.SMUGGLE);
+    }
+  }
+
+  // ── 11c. UNICODE / RTL DECODER ────────────────────────────────
+  const unicodeHits = [];
+  Object.entries(HIDDEN_CHAR_MAP).forEach(([ch, info]) => {
+    if (raw.includes(ch)) {
+      unicodeHits.push({char: ch, ...info});
+      if (['\u202E','\u202B'].includes(ch)) {
+        score += 25; add('HIGH', `RTL Override karakteri tespit edildi (${info.hex}) — ${info.desc}`, M.UNICODE);
+      } else {
+        score += 15; add('HIGH', `Gizli Unicode: ${info.name} (${info.hex}) — ${info.desc}`, M.HIDDEN);
+      }
+    }
+  });
+
+  // ── 11d. SPAM SCORE PARSING ───────────────────────────────────
+  const spamData = parseSpamHeaders(headers);
+
+  // ── 11e. QR Code / Image attachment check ─────────────────────
+  const hasImages = /content-type:\s*(image\/|multipart\/)/i.test(raw);
+  const hasCidRef = /cid:/i.test(raw);
+  const qrWarning = hasImages || hasCidRef;
+
+  // ── 12. ATTACHMENTS ───────────────────────────────────────────
+  const attFound = new Set(); let am;
+  const attRe = /filename[*=\s"]*=?\s*["']?([^\r\n"';]+\.[a-zA-Z0-9]+)/gi;
+  while ((am = attRe.exec(raw)) !== null) attFound.add(am[1].trim());
+  (raw.match(/(?:attachment|ek\s*dosya|dosya)[:\s]+([^\s\r\n]+\.[a-zA-Z]{2,5})/gi) || []).forEach(a => {
+    const m = a.match(/([^\s:]+\.[a-zA-Z]{2,5})$/i); if (m) attFound.add(m[1]);
+  });
+  const attachments = [];
+  attFound.forEach(name => {
+    const exts = name.split('.').map(e => e.toLowerCase());
+    const ext = exts[exts.length - 1];
+    const doubled = exts.length > 2 && ['exe','bat','cmd','vbs','js','ps1','hta','jar','scr','com'].includes(ext);
+    const dangerExts = ['exe','bat','cmd','vbs','js','ps1','hta','jar','scr','pif','lnk','ws','wsf','reg','dll','msi'];
+    const isExec = dangerExts.includes(ext);
+    const isMacro = MACRO_EXTS.includes(ext);
+    let risk = doubled || isExec ? 'danger' : isMacro ? 'warn' : 'safe';
+    let reason = doubled ? 'Çift uzantı: kötü amaçlı dosya gizleme' : isExec ? `Yürütülebilir: .${ext}` : isMacro ? 'Macro etkinleştirme riski' : 'Normal ek';
+    if (doubled)      { score += 30; add('HIGH',   `Çift uzantı ek: "${name}" — LOLBAS/Malware dropper`, M.EXEC_ATT); }
+    else if (isExec)  { score += 25; add('HIGH',   `Yürütülebilir ek: "${name}" (.${ext})`, M.EXEC_ATT); }
+    else if (isMacro) { score += 12; add('MEDIUM', `Macro içerebilecek Office dosyası: "${name}"`, M.MACRO); }
+    // size suspicion from name
+    if (/invoice|fatura|odeme|ödeme|payment|receipt|makbuz/i.test(name)) { score += 6; add('MEDIUM',`Ek dosya ismi finansal tuzak: "${name}"`,M.SOCIAL); }
+    attachments.push({name, ext, doubled, macro: isMacro, risk, reason});
+  });
+
+  // ── 13. HEADER ANALYSIS (per-line) ────────────────────────────
+  const hdrA = hdrLines.map(h => {
+    const kl = h.k.toLowerCase(); let risk = 'normal', tt = '', mitre = null;
+    if (kl === 'x-originating-ip')   { risk = 'warn';   tt = 'Gönderenin orijinal IP adresi — lokasyon tespiti'; mitre = M.COLLECT; }
+    if (kl === 'x-php-originating-script') { risk = 'danger'; tt = 'PHP script otomatik gönderim — spam altyapısı'; mitre = M.OBFUSC; }
+    if (kl === 'x-mailer' && /php|curl|python|sendmail|phpmailer/i.test(h.v)) { risk = 'warn'; tt = `Şüpheli mailer yazılımı: ${h.v}`; mitre = M.SOCIAL; }
+    if (kl === 'reply-to' && rtDomain && rtDomain !== fromDomain) { risk = 'danger'; tt = `Reply-To farklı domain: ${rtDomain} ≠ ${fromDomain}`; mitre = M.SPOOF; }
+    if (kl === 'x-spam-status' && /yes/i.test(h.v))  { risk = 'danger'; tt = 'Spam filtresi YES — zaten işaretlenmiş mesaj'; mitre = M.SOCIAL; }
+    if (kl === 'x-spam-flag' && /yes/i.test(h.v))    { risk = 'danger'; tt = 'Spam bayrağı aktif'; }
+    if (kl === 'x-spam-score') { const sc = parseFloat(h.v); if (sc > 5) { risk = 'warn'; tt = `Spam skoru yüksek: ${sc}`; } }
+    if (kl === 'from' && SUSP_TLDS.some(t => extractDomain(h.v).endsWith(t))) { risk = 'danger'; tt = `Şüpheli TLD gönderen: ${extractDomain(h.v)}`; }
+    if (kl === 'return-path' && rpDomain !== fromDomain && rpDomain) { risk = 'danger'; tt = `Return-Path (${rpDomain}) ≠ From (${fromDomain})`; mitre = M.SPOOF; }
+    if (kl === 'message-id') { const mid = extractDomain(h.v); if (mid && fromDomain && mid !== fromDomain) { risk = 'warn'; tt = `Message-ID domain (${mid}) ≠ From (${fromDomain})`; } }
+    if (kl === 'content-type' && /text\/html/i.test(h.v)) { risk = 'warn'; tt = 'HTML e-posta — gizli link/karakter riski'; }
+    if (kl === 'x-forwarded-to' || kl === 'x-forwarded-for') { risk = 'warn'; tt = 'Forwarding header — relay zinciri'; mitre = M.RELAY; }
+    if (kl === 'content-transfer-encoding' && /base64/i.test(h.v)) { risk = 'warn'; tt = 'Base64 içerik encoding — gizlenmiş payload riski'; mitre = M.OBFUSC; }
+    return {...h, risk, tt, mitre};
+  });
+
+  // ── 14. CUMULATIVE SCORING ────────────────────────────────────
+  const medCnt = findings.filter(f => f.l === 'MEDIUM').length;
+  if (medCnt >= 3) {
+    const boost = Math.round(medCnt * medCnt * 2.5);
+    score = Math.min(100, score + boost);
+    add('HIGH', `Kümülatif risk boost: ${medCnt} MEDIUM bulgu → +${boost} geometrik artış`, M.SOCIAL);
+  }
+  // Triple escalation rule
+  const hasSocial = findings.some(f => f.mitre === M.SOCIAL);
+  const hasDiffRT = rtDomain && rtDomain !== fromDomain;
+  const hasSuspTLD = SUSP_TLDS.some(t => [from, rp, replyTo].some(s => s.includes(t)));
+  if (hasSocial && hasDiffRT && hasSuspTLD) score = Math.max(70, score);
+
+  score = Math.min(100, score);
+
+  // ── 15. IOCs ──────────────────────────────────────────────────
+  const allIPs = [...new Set([...raw.matchAll(/\[?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]?/g)]
+    .map(m => m[1]).filter(ip => !isPrivateIP(ip) && ip !== '127.0.0.1'))];
+
+  const iocs = [];
+  allIPs.slice(0, 8).forEach(ip => iocs.push({type:'IP',  val:ip, desc:'E-posta altyapısı IP', risk:'MEDIUM', source:'ip-api.com', mitre:M.COLLECT}));
+  urls.filter(u => u.risk === 'danger').slice(0,6).forEach(u => iocs.push({type:'URL', val:u.url.substring(0,80), desc:u.reason, risk:'HIGH', source:'offline', mitre:M.URL_HIDE}));
+  [...new Set([fromDomain,rpDomain,...lookalikes.map(l=>l.fake)].filter(Boolean))].slice(0,6).forEach(d => {
+    const la = lookalikes.find(l => l.fake === d);
+    iocs.push({type:'DOMAIN', val:d, desc:la?`Look-alike → ${la.orig}`:'Gönderen/relay domain', risk:la?'HIGH':'MEDIUM', source:'offline', mitre:la?M.LOOKALIKE:null});
+  });
+  const emailRe = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  [...new Set(raw.match(emailRe)||[])].slice(0,5).forEach(e => iocs.push({type:'EMAIL', val:e, desc:'Tespit edilen e-posta adresi', risk:'LOW', source:'offline', mitre:null}));
+
+  const verdict = score >= 65 ? 'ZARARLI' : score >= 30 ? 'SUPHELII' : 'GUVENLI';
+  if (!findings.length) findings.push({l:'INFO', t:'Belirgin phishing göstergesi tespit edilmedi', mitre:null});
+
+  return {score, verdict, findings, auth, trustOverride, timeline, hdrA, urls, lookalikes,
+    attachments, iocs, hiddenF, b64Doms, entropyFindings, bodyAnalysis, allIPs,
+    subj, from, rp, replyTo, xMailer,
+    smuggleHits, hasDownloadTrigger, unicodeHits, spamData, qrWarning};
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SPAM HEADER PARSER
+// ════════════════════════════════════════════════════════════════
+function parseSpamHeaders(headers) {
+  const get = k => headers[k.toLowerCase()] || '';
+  const result = {scl: null, spamStatus: null, spamScore: null, forefront: null, spamFlag: null};
+
+  // X-Spam-Status
+  const xss = get('x-spam-status');
+  if (xss) {
+    result.spamStatus = /yes/i.test(xss) ? 'YES' : 'NO';
+    const sm = xss.match(/score=(-?[\d.]+)/i);
+    if (sm) result.spamScore = parseFloat(sm[1]);
+  }
+  // X-Spam-Score
+  const xscr = get('x-spam-score');
+  if (xscr && !result.spamScore) result.spamScore = parseFloat(xscr);
+
+  // X-Spam-Flag
+  result.spamFlag = /yes/i.test(get('x-spam-flag')) ? 'YES' : (get('x-spam-flag') ? 'NO' : null);
+
+  // X-Forefront-Antispam-Report (Microsoft 365)
+  const ff = get('x-forefront-antispam-report');
+  if (ff) {
+    const sclM = ff.match(/SCL:(\d+)/i);
+    if (sclM) result.scl = parseInt(sclM[1]);
+    const sfvM = ff.match(/SFV:([A-Z]+)/i);
+    if (sfvM) result.sfv = sfvM[1];
+    const catM = ff.match(/CAT:([A-Z]+)/i);
+    if (catM) result.cat = catM[1];
+    result.forefront = ff.substring(0, 120);
+  }
+
+  // Microsoft SCL from other headers
+  const sclH = get('x-microsoft-antispam');
+  if (sclH && !result.scl) {
+    const m = sclH.match(/BCL:(\d+)/i) || sclH.match(/SCL:(\d+)/i);
+    if (m) result.scl = parseInt(m[1]);
+  }
+
+  // IronPort (Cisco)
+  const ip = get('x-ironport-av') || get('x-ironport-antispam-filtered');
+  if (ip) result.ironport = ip.substring(0, 80);
+
+  return result;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EVIDENCE VIEWER BUILDER
+// ════════════════════════════════════════════════════════════════
+function buildEvidenceLines(parsed, result) {
+  const lines = [];
+  const {hdrLines, raw} = parsed;
+
+  // Build per-line analysis
+  hdrLines.forEach((h, idx) => {
+    const kl = h.k.toLowerCase();
+    let lineClass = '';
+    let badges = [];
+    let analystNote = '';
+    let tooltip = '';
+
+    const hdrResult = result.hdrA.find(hr => hr.k === h.k && hr.v === h.v);
+    const risk = hdrResult ? hdrResult.risk : 'normal';
+
+    if (risk === 'danger') lineClass = 'ev-line-danger';
+    else if (risk === 'warn') lineClass = 'ev-line-warn';
+
+    // RTL / Unicode check
+    const rtlMatch = Object.entries(HIDDEN_CHAR_MAP).filter(([ch]) => h.v.includes(ch));
+    if (rtlMatch.length > 0) {
+      lineClass = 'ev-line-rtl';
+      rtlMatch.forEach(([,info]) => badges.push({cls:'evb-rtl', txt:`${info.hex}`}));
+      analystNote = `Bu satırda gizli Unicode karakter(ler) bulundu: ${rtlMatch.map(([,i])=>i.name).join(', ')}. Bu teknik genellikle dosya adı sahteciliği veya spam filtresi bypass için kullanılır. MITRE ${M.UNICODE.id} şüphesi yüksektir.`;
+    }
+
+    // Base64 / encoding
+    if (/base64/i.test(h.v) || kl === 'content-transfer-encoding') {
+      if (!lineClass) lineClass = 'ev-line-b64';
+      badges.push({cls:'evb-b64', txt:'BASE64'});
+      if (!analystNote) analystNote = `Base64 encoding, payload gizleme için kullanılabilir. İçerik decode edilerek incelenmelidir (${M.OBFUSC.id}).`;
+    }
+
+    // Mismatch detection
+    if (kl === 'return-path') {
+      const rpD = extractDomain(h.v), fromD = extractDomain(result.from);
+      if (rpD && fromD && rpD !== fromD) {
+        badges.push({cls:'evb-mismatch', txt:'MISMATCH'});
+        analystNote = `Return-Path (${rpD}) ile From (${fromD}) domain'leri uyuşmuyor. Bu domain yasal görünse bile Return-Path uyuşmazlığı olduğu için ${M.SPOOF.id} şüphesi yüksektir. Gerçek gönderen farklı bir altyapı kullanıyor.`;
+      }
+    }
+    if (kl === 'reply-to') {
+      const rtD = extractDomain(h.v), fromD = extractDomain(result.from);
+      if (rtD && fromD && rtD !== fromD) {
+        badges.push({cls:'evb-mismatch', txt:'REPLY HIJACK'});
+        analystNote = `Reply-To farklı bir domain'e (${rtD}) yönlendiriyor. Kullanıcı yanıtladığında mesaj saldırgana gidecek. Klasik BEC/phishing taktiği: ${M.SPOOF.id}.`;
+      }
+    }
+    if (kl === 'message-id') {
+      const midD = extractDomain(h.v), fromD = extractDomain(result.from);
+      if (midD && fromD && midD !== fromD) {
+        badges.push({cls:'evb-mismatch', txt:'ID≠FROM'});
+        analystNote = `Message-ID domain'i (${midD}), From domain'i (${fromD}) ile uyuşmuyor. Farklı bir mail sunucusu veya forged header işareti.`;
+      }
+    }
+    if (kl === 'x-spam-status' && /yes/i.test(h.v)) {
+      analystNote = 'Spam filtresi bu mesajı zaten "YES" olarak işaretlemiş. Mesaj spam olduğu hâlde teslim edilmişse delivery policy kontrolü gerekir.';
+    }
+    if (kl === 'x-mailer' && /php/i.test(h.v)) {
+      analystNote = `PHPMailer altyapısı tespit edildi. Bu genellikle compromised web server veya bulk phishing kampanyasını işaret eder. ${M.SOCIAL.id}.`;
+    }
+    if (hdrResult?.mitre && !analystNote) {
+      tooltip = hdrResult.tt || '';
+    }
+
+    lines.push({k: h.k, v: h.v, lineClass, badges, analystNote, tooltip, idx});
+  });
+  return lines;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  RENDER ENGINE
+// ════════════════════════════════════════════════════════════════
+function render(result, geoData, ctiData, parsed) {
+  const s = result.score;
+  // Score ring
+  document.getElementById('score-display').textContent = s;
+  document.getElementById('score-ring-el').style.strokeDashoffset = 376.99 - (376.99 * s / 100);
+  const scoreColor = s >= 65 ? 'var(--flame)' : s >= 30 ? 'var(--amber)' : 'var(--acid)';
+  document.getElementById('score-display').style.color = scoreColor;
+
+  // Verdict
+  const vt = document.getElementById('verdict-tag');
+  if      (result.verdict === 'ZARARLI')  { vt.className = 'verdict-tag vt-bad';  vt.textContent = '⛔ ZARARLI'; }
+  else if (result.verdict === 'SUPHELII') { vt.className = 'verdict-tag vt-susp'; vt.textContent = '⚠ ŞÜPHELİ'; }
+  else                                    { vt.className = 'verdict-tag vt-safe'; vt.textContent = '✔ GÜVENLİ'; }
+
+  const high = result.findings.filter(f => f.l === 'HIGH').length;
+  const medium = result.findings.filter(f => f.l === 'MEDIUM').length;
+  document.getElementById('score-meta').textContent = `${high} HIGH · ${medium} MEDIUM · ${result.iocs.length} IOC · ${result.urls.filter(u=>u.risk!=='safe').length} suspicious URLs`;
+
+  // Mini stats
+  document.getElementById('ms-score').textContent = s;
+  document.getElementById('ms-score').style.color = scoreColor;
+  document.getElementById('ms-high').textContent = high;
+  document.getElementById('ms-ioc').textContent = result.iocs.length;
+  document.getElementById('ms-urls').textContent = result.urls.filter(u => u.risk !== 'safe').length;
+
+  // Findings
+  const fc = document.getElementById('findings-container');
+  fc.innerHTML = result.findings.map(f => `
+    <div class="fi">
+      <span class="fi-lv lv-${f.l[0]}">${f.l}</span>
+      <span class="fi-text">${esc(f.t)}</span>
+      ${f.mitre ? `<span class="mitre" title="${f.mitre.name}">${f.mitre.id}</span>` : ''}
+    </div>`).join('');
+
+  // Trust override
+  document.getElementById('trust-override-box').innerHTML = result.trustOverride
+    ? `<div class="trust-box">⚡ <strong>Trust Balancing Aktif:</strong> SPF+DKIM PASS olmasına rağmen domain uyuşmazlığı nedeniyle güven puanı nötrleştirildi. Senaryo: Hacklenmiş ESP veya pazarlama aracı kötüye kullanımı. [${M.RELAY.id} · ${M.RELAY.name}]</div>`
+    : '';
+
+  // Auth
+  const ag = document.getElementById('auth-container'); ag.innerHTML = '';
+  ['spf','dkim','dmarc'].forEach(k => {
+    const a = result.auth[k];
+    const cls = a.s==='PASS'?'as-pass':a.s==='FAIL'?'as-fail':'as-none';
+    ag.innerHTML += `<div class="auth-cell">
+      <div class="auth-name">${k.toUpperCase()}</div>
+      <div class="auth-status ${cls}">${a.s}</div>
+      <div class="auth-det">${esc(a.d)}</div>
+      ${a.ov ? '<div class="auth-ov">TRUST OVERRIDE</div>' : ''}
+    </div>`;
+  });
+
+  // Timeline
+  const tl = document.getElementById('timeline-container'); tl.innerHTML = '';
+  if (result.timeline.length) {
+    result.timeline.forEach((t, i, arr) => {
+      const nc = t.susp ? 'tn-bad' : 'tn-ok';
+      tl.innerHTML += `<div class="tl-item">
+        <div class="tl-spine">
+          <div class="tl-node ${nc}"></div>
+          ${i < arr.length-1 ? '<div class="tl-spine-line"></div>' : ''}
+        </div>
+        <div class="tl-body">
+          <div class="tl-server">${esc(t.server)}</div>
+          ${t.ip ? `<div class="tl-ip">${t.ip}</div>` : ''}
+          ${t.ts ? `<div class="tl-ts">${esc(t.ts)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  } else { tl.innerHTML = '<div class="empty">Received header bulunamadı.</div>'; }
+
+  // IP GEO
+  const ic = document.getElementById('ip-container') || document.getElementById('network-table-body'); if(ic) ic.innerHTML = '';
+  if (geoData && geoData.length) {
+    geoData.forEach((g, idx) => {
+      const abuse = ctiData?.abuse?.[idx];
+      const rep = ipRepScore(g, abuse);
+      const repColor = rep > 70 ? '#b8ff35' : rep > 45 ? '#ffad00' : '#ff4545';
+      ic.innerHTML += `<div class="ip-row">
+        <div class="ip-flag">${g.flag}</div>
+        <div style="flex:1">
+          <div class="ip-addr" style="color:${rep<40?'#ff4545':'var(--t0)'}; font-weight:700">${g.ip}</div>
+          <div class="ip-tags">
+            <span class="ip-tag it-country">${g.flag} ${g.country||'Bilinmiyor'}</span>
+            ${g.city ? `<span class="ip-tag it-country">${g.city}</span>` : ''}
+            <span class="ip-tag it-isp">${(g.isp||'Bilinmiyor').substring(0,28)}</span>
+            ${g.proxy   ? '<span class="ip-tag it-bad">PROXY/TOR</span>' : ''}
+            ${g.hosting ? '<span class="ip-tag it-bad">HOSTING/VPS</span>' : ''}
+            ${rep>70    ? '<span class="ip-tag it-good">CLEAN</span>' : ''}
+            ${rep<30    ? '<span class="ip-tag it-bad">HIGH RISK</span>' : ''}
+          </div>
+          <div class="ip-asn" style="color:var(--t3);font-size:9px">${g.asn||'N/A'}</div>
+          ${abuse ? `<div class="ip-src" style="color:${abuse.abuseScore>50?'#ff4545':'var(--t3)'}">AbuseIPDB: <b>${abuse.abuseScore}%</b> · ${abuse.totalReports} raporlar · ${abuse.usageType||'N/A'}</div>` : '<div class="ip-src" style="color:var(--t3)">AbuseIPDB: Aşağıdan kontrol edin</div>'}
+          <div class="ip-src">Kaynak: ${g.source||'ip-api.com'} (ücretsiz)</div>
+          <div class="ip-cti-row">
+            <a class="cti-btn cti-vt" href="https://www.virustotal.com/gui/ip-address/${g.ip}" target="_blank">🔵 VirusTotal</a>
+            <a class="cti-btn cti-ab" href="https://www.abuseipdb.com/check/${g.ip}" target="_blank">🟠 AbuseIPDB</a>
+          </div>
+        </div>
+        <div class="ip-rep-col">
+          <div class="ip-rep-num" style="color:${repColor}">${rep}<span style="font-size:8px;color:var(--t3)">/100</span></div>
+          <div class="ip-bar"><div class="ip-bar-fill" style="width:${rep}%;background:${repColor}"></div></div>
+        </div>
+      </div>`;
+    });
+  } else { ic.innerHTML = '<div class="empty">IP adresi tespit edilmedi.</div>'; }
+
+  // Headers
+  const hh = document.getElementById('header-container'); hh.innerHTML = '';
+  const riskHdrs = result.hdrA.filter(h => h.risk !== 'normal');
+  if (riskHdrs.length) {
+    riskHdrs.forEach(h => {
+      const c = h.risk==='danger' ? 'hdl-danger' : h.risk==='warn' ? 'hdl-warn' : '';
+      const vc = h.risk==='danger' ? 'hvd' : h.risk==='warn' ? 'hvw' : 'hvn';
+      const tt = h.tt ? `<div class="tooltip">${esc(h.tt)}${h.mitre?`<div class="tt-mitre">${h.mitre.id} · ${h.mitre.name}</div>`:''}</div>` : '';
+      hh.innerHTML += `<div class="hdr-line ${c}"><span class="hk">${esc(h.k)}:</span> <span class="${vc}">${esc(h.v.substring(0,90))}</span>${tt}</div>`;
+    });
+  } else { hh.innerHTML = '<div class="empty">Şüpheli header satırı yok.</div>'; }
+
+  // URLs — v8 with external buttons
+  renderURLTableV8(result.urls, ctiData);
+
+  // Lookalike
+  const la = document.getElementById('lookalike-container'); la.innerHTML = '';
+  if (result.lookalikes.length) {
+    result.lookalikes.forEach(l => {
+      const e = parseFloat(l.ent);
+      const ec = e > 3.5 ? 'var(--flame)' : e > 2.8 ? 'var(--amber)' : 'var(--t3)';
+      la.innerHTML += `<div class="la-item">
+        <span class="la-real">${esc(l.orig)}</span>
+        <span class="la-arr">→</span>
+        <span class="la-fake">${esc(l.fake)}</span>
+        <span class="la-sim">~${l.sim}</span>
+        <span class="la-ent" style="color:${ec}">H:${l.ent}</span>
+      </div>`;
+    });
+  } else { la.innerHTML = '<div class="empty empty-ok">✔ Look-alike domain tespit edilmedi.</div>'; }
+  if (result.entropyFindings.length) {
+    la.innerHTML += `<div style="margin-top:8px"><div class="sec-label" style="font-size:8px">yüksek entropy domainler</div>`;
+    result.entropyFindings.forEach(ef => {
+      const pct = Math.min(100, parseFloat(ef.e) / 5 * 100);
+      la.innerHTML += `<div style="padding:4px 0">
+        <div style="font-family:var(--dm);font-size:10.5px;color:var(--flame)">${esc(ef.d)}</div>
+        <div class="ent-row"><span>H=</span><span style="color:var(--amber)">${ef.e}</span>
+          <div class="ent-bar"><div class="ent-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--amber),var(--flame))"></div></div>
+        </div></div>`;
+    });
+    la.innerHTML += '</div>';
+  }
+
+  // Attachments
+  const at = document.getElementById('attachment-container'); at.innerHTML = '';
+  if (result.attachments.length) {
+    result.attachments.forEach(a => {
+      const c = a.risk==='danger'?'var(--flame)':a.risk==='warn'?'var(--amber)':'var(--t1)';
+      const isCritical = typeof CRITICAL_EXTS!=='undefined' && CRITICAL_EXTS.some(e=>a.name.toLowerCase().endsWith('.'+e)||(a.ext||'').toLowerCase()===e);
+      at.innerHTML += `<div class="att-item${isCritical?' att-critical':''}">
+        <div class="att-icon">${a.doubled?'💀':a.macro?'⚡':isCritical?'🔴':'📎'}</div>
+        <div>
+          <div class="att-name" style="color:${c}">${esc(a.name)}</div>
+          <div class="att-meta">.${a.ext||'?'}${a.macro?' · MACRO RISKI':''}${isCritical?' · <span class="critical-finding">KRİTİK UZANTI</span>':''}</div>
+          <div style="font-size:9px;color:var(--t3);margin-top:1px">${esc(a.reason||'N/A')}</div>
+        </div>
+        <div class="att-badge"><span class="risk-chip ${a.risk==='danger'?'rc-H':a.risk==='warn'?'rc-M':'rc-L'}">${a.risk.toUpperCase()}</span></div>
+      </div>`;
+    });
+  } else { at.innerHTML = '<div class="empty empty-ok">✔ Şüpheli ek dosya yok.</div>'; }
+
+  // Hidden / B64
+  const hc = document.getElementById('hidden-container'); hc.innerHTML = '';
+  result.hiddenF.forEach(h => hc.innerHTML += `<div class="hid-warn">🔴 ${esc(h)}</div>`);
+  result.b64Doms.forEach(b => hc.innerHTML += `<div class="b64-box">
+    <div style="color:var(--t3);font-size:9px">BASE64 DECODE:</div>
+    <div>ENC: ${esc(b.enc)}…</div>
+    <div>DEC: ${esc(b.dec)}</div>
+    ${b.domain ? `<div>Domain: <span style="color:var(--flame)">${esc(b.domain)}</span></div>` : ''}
+  </div>`);
+  if (!result.hiddenF.length && !result.b64Doms.length) hc.innerHTML = '<div class="empty empty-ok">✔ Gizli karakter veya Base64 bulunamadı.</div>';
+
+  // Body analysis
+  const bc = document.getElementById('body-container'); bc.innerHTML = '';
+  if (result.bodyAnalysis.length) {
+    result.bodyAnalysis.forEach(b => {
+      const c = b.r === 'HIGH' ? 'rc-H' : b.r === 'MEDIUM' ? 'rc-M' : 'rc-L';
+      bc.innerHTML += `<div class="fi" style="border-bottom:1px solid var(--line)">
+        <span class="risk-chip ${c}" style="flex-shrink:0">${b.r}</span>
+        <span class="fi-text" style="font-family:var(--dm);font-size:11px">${esc(b.t)}</span>
+      </div>`;
+    });
+  } else { bc.innerHTML = '<div class="empty empty-ok">✔ Şüpheli body içeriği yok.</div>'; }
+
+  // IOC table
+  const ib = document.getElementById('ioc-tbody') || document.getElementById('ioc-list-body'); if(ib) ib.innerHTML = '';
+  if(!ib) return;
+  result.iocs.forEach(ioc => {
+    const tc = {IP:'it-IP',URL:'it-URL',DOMAIN:'it-DOM',HASH:'it-HASH',EMAIL:'it-EMAIL'}[ioc.type]||'';
+    let ctiLinks = '';
+    if (ioc.type === 'IP') {
+      ctiLinks = `<a class="cti-btn cti-vt" href="https://www.virustotal.com/gui/ip-address/${encodeURIComponent(ioc.val)}" target="_blank">🔵 VT</a> <a class="cti-btn cti-ab" href="https://www.abuseipdb.com/check/${encodeURIComponent(ioc.val)}" target="_blank">🟠 Abuse</a>`;
+    } else if (ioc.type === 'DOMAIN') {
+      ctiLinks = `<a class="cti-btn cti-vt" href="https://www.virustotal.com/gui/domain/${encodeURIComponent(ioc.val)}" target="_blank">🔵 VT</a>`;
+    } else if (ioc.type === 'URL') {
+      ctiLinks = `<a class="cti-btn cti-vt" href="https://www.virustotal.com/gui/url/${encodeURIComponent(ioc.val)}/detection" target="_blank">🔵 VT</a>`;
+    }
+    ib.innerHTML += `<tr>
+      <td><span class="ioc-type ${tc}">${ioc.type}</span></td>
+      <td style="color:var(--t1);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(ioc.val)}">${esc(ioc.val.length>42?ioc.val.substring(0,42)+'…':ioc.val)}</td>
+      <td style="color:var(--t2)">${esc(ioc.desc||'N/A')}</td>
+      <td><span class="risk-chip ${ioc.risk==='HIGH'?'rc-H':ioc.risk==='MEDIUM'?'rc-M':'rc-L'}">${ioc.risk||'LOW'}</span></td>
+      <td><span style="font-family:var(--mono);font-size:9px;color:var(--t3)">${ioc.source||'N/A'}</span></td>
+      <td style="white-space:nowrap">${ctiLinks||'—'}</td>
+      <td>${ioc.mitre?`<span class="mitre">${ioc.mitre.id}</span>`:'—'}</td>
+    </tr>`;
+  });
+  if (!result.iocs.length) if(ib) ib.innerHTML = '<tr><td colspan="7" class="empty" style="padding:8px">IOC bulunamadı — N/A</td></tr>';
+
+  // ── DECISION SUPPORT ───────────────────────────────────────────
+  renderDecisionSupport(result);
+
+  // ── ANALYST CHECKLIST ──────────────────────────────────────────
+  renderAnalystChecklist(result);
+
+  // ── MITRE HEATMAP (v8) ────────────────────────────────────────
+  renderMitreHeatmap(result);
+
+  // ── MITRE ATT&CK MATRIX (legacy kept) ─────────────────────────
+  renderMitreMatrix(result);
+
+  // ── INCONSISTENCY MATRIX (v8) ─────────────────────────────────
+  renderInconsistencyMatrix(result);
+
+  // ── SANDBOX BRIDGE (v8) ───────────────────────────────────────
+  renderSandboxURLs(result.urls);
+
+  // ── EVIDENCE CANVAS (v8) ──────────────────────────────────────
+  renderEvidenceCanvas(parsed || parsed_global, result);
+
+  // ── FORENSIC SUMMARY (v8) ─────────────────────────────────────
+  renderForensicSummary(result);
+
+  // v11: AI hub removed
+
+  // ── SPAM SCORE ─────────────────────────────────────────────────
+  renderSpamScore(result);
+
+  // ── GEOREP ─────────────────────────────────────────────────────
+  renderGeoRep(result, geoData);
+
+  // ── EVIDENCE VIEWER ────────────────────────────────────────────
+  renderEvidenceViewer(parsed || parsed_global, result);
+
+  // Raw headers
+  const rh = document.getElementById('raw-header-container'); rh.innerHTML = '';
+  result.hdrA.forEach(h => {
+    const c = h.risk==='danger' ? 'hdl-danger' : h.risk==='warn' ? 'hdl-warn' : 'hdl-ok';
+    const vc = h.risk==='danger'?'hvd':h.risk==='warn'?'hvw':'hvn';
+    const tt = h.tt ? `<div class="tooltip">${esc(h.tt)}${h.mitre?`<div class="tt-mitre">${h.mitre.id} · ${h.mitre.name}</div>`:''}</div>` : '';
+    rh.innerHTML += `<div class="hdr-line ${c}"><span class="hk">${esc(h.k)}:</span> <span class="${vc}">${esc(h.v.substring(0,130))}</span>${tt}</div>`;
+  });
+
+  window._reportData = result;
+  window._geoData = geoData;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  RENDER HELPERS — NEW v6.0 FEATURES
+// ════════════════════════════════════════════════════════════════
+
+function renderDecisionSupport(result) {
+  const s = result.score;
+  const box = document.getElementById('decision-box');
+  const summary = document.getElementById('decision-summary');
+  const actions = document.getElementById('decision-actions');
+
+  box.className = 'decision-box ' + (s >= 65 ? 'decision-critical' : s >= 30 ? 'decision-warn' : 'decision-safe');
+
+  // Build explanation chain
+  const topFindings = result.findings.filter(f => f.l === 'HIGH').slice(0,3);
+  const reasons = topFindings.map(f => `• ${f.t}`).join('<br>');
+
+  let verdict_tr = s >= 65 ? '<span style="color:var(--flame);font-weight:700">ZARARLI</span>' :
+                   s >= 30 ? '<span style="color:var(--amber);font-weight:700">ŞÜPHELİ</span>' :
+                              '<span style="color:var(--acid);font-weight:700">GÜVENLİ</span>';
+
+  let mainMsg = `Bu mailin risk skoru <strong style="color:${s>=65?'var(--flame)':s>=30?'var(--amber)':'var(--acid)'}">${s}/100</strong> olarak hesaplandı → ${verdict_tr}.`;
+  if (topFindings.length) mainMsg += `<br><br>Skor hesaplamasındaki ana nedenler:<br><span style="color:var(--t2);font-size:11px">${reasons}</span>`;
+
+  summary.innerHTML = mainMsg;
+
+  // Build action buttons
+  const actionList = [];
+  if (s >= 65) {
+    actionList.push({cls:'da-critical', icon:'🚫', text:'MAİLİ KARANTİNAYA AL', action:'Mesajı hemen karantinaya alın ve ilgili kullanıcıyı bilgilendirin.'});
+    actionList.push({cls:'da-critical', icon:'🔒', text:'IP FIREWALL BLOCK', action:`Gönderen IP'yi (${result.allIPs[0]||'tespit edilemedi'}) firewall üzerinden engelleyin.`});
+    actionList.push({cls:'da-warn', icon:'🔍', text:'IOC SIEM\'E EKLE', action:'Tespit edilen IOC\'leri SIEM sistemine ekleyin: ' + result.iocs.slice(0,3).map(i=>i.val).join(', ')});
+    actionList.push({cls:'da-info', icon:'📣', text:'KULLANICILARI UYAR', action:'Benzer içerikli maillere karşı kullanıcı farkındalık bildirimi gönderin.'});
+  } else if (s >= 30) {
+    actionList.push({cls:'da-warn', icon:'⚠', text:'MANFEL İNCELEME GEREKLİ', action:'Mesaj manuel analiz için SOC ekibine yönlendirin.'});
+    actionList.push({cls:'da-info', icon:'🌐', text:'URL\'LERİ VT\'DE KONTROL ET', action:'Tespit edilen URL\'leri VirusTotal\'da manuel olarak sorgulayın.'});
+    actionList.push({cls:'da-ok', icon:'📋', text:'KULLANICIYA BILDIR', action:'Kullanıcıya şüpheli mail olduğunu ve tıklamaması gerektiğini bildirin.'});
+  } else {
+    actionList.push({cls:'da-ok', icon:'✅', text:'GÜVENLİ GÖRÜNÜYOR', action:'Mevcut analiz sonuçlarına göre belirgin tehdit göstergesi yok.'});
+    actionList.push({cls:'da-info', icon:'👁', text:'YINE DE GÖZLEMDE TUT', action:'Düşük riskli mesajlar için log kaydı tutmaya devam edin.'});
+  }
+
+  actions.innerHTML = actionList.map((a,i) =>
+    `<button class="decision-action ${a.cls}" onclick="showActionDetail(${i})" data-detail="${esc(a.action)}">${a.icon} ${a.text}</button>`
+  ).join('');
+}
+
+function showActionDetail(idx) {
+  const btns = document.querySelectorAll('.decision-action');
+  const btn = btns[idx]; if (!btn) return;
+  const detail = btn.getAttribute('data-detail');
+  // Show inline below
+  const existing = document.getElementById('action-detail');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'action-detail';
+  div.style.cssText = 'font-family:var(--dm);font-size:11px;color:var(--t1);margin-top:.5rem;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:3px;width:100%';
+  div.innerHTML = '💡 ' + detail;
+  document.getElementById('decision-actions').appendChild(div);
+}
+
+function renderAnalystChecklist(result) {
+  const container = document.getElementById('analyst-checklist-items');
+  const s = result;
+
+  const items = [
+    {
+      label: 'SPF Kaydı Manuel Doğrulama',
+      sub: 'dig +short TXT ' + (extractDomain(s.from) || '<domain>') + ' | grep spf',
+      auto: s.auth.spf.s,
+      id: 'spf'
+    },
+    {
+      label: 'DKIM İmzası Doğrulama',
+      sub: 'DKIM selector\'ı header\'dan al ve DNS kaydını kontrol et',
+      auto: s.auth.dkim.s,
+      id: 'dkim'
+    },
+    {
+      label: 'DMARC Politikası Kontrolü',
+      sub: 'dig +short TXT _dmarc.' + (extractDomain(s.from) || '<domain>'),
+      auto: s.auth.dmarc.s,
+      id: 'dmarc'
+    },
+    {
+      label: 'Return-Path / From Uyumu',
+      sub: `From: ${extractDomain(s.from)||'?'} | Return-Path: ${extractDomain(s.rp)||'yok'}`,
+      auto: (extractDomain(s.from) && extractDomain(s.rp) && extractDomain(s.from)===extractDomain(s.rp)) ? 'PASS' : (s.rp ? 'FAIL' : 'NONE'),
+      id: 'rp'
+    },
+    {
+      label: 'Tüm URL\'leri Manuel Tarama',
+      sub: s.urls.filter(u=>u.risk!=='safe').slice(0,3).map(u=>u.url.substring(0,50)).join(' | ') || 'Şüpheli URL yok',
+      auto: s.urls.some(u=>u.risk==='danger') ? 'FAIL' : s.urls.some(u=>u.risk==='warn') ? 'WARN' : 'PASS',
+      id: 'urls'
+    },
+    {
+      label: 'Ek Dosya Hash Kontrolü',
+      sub: s.attachments.length ? s.attachments.map(a=>a.name).join(', ') : 'Ek dosya yok',
+      auto: s.attachments.some(a=>a.risk==='danger') ? 'FAIL' : s.attachments.some(a=>a.risk==='warn') ? 'WARN' : 'PASS',
+      id: 'att'
+    },
+    {
+      label: 'HTML Smuggling / Obfuscation',
+      sub: s.smuggleHits?.length ? `Tespit: ${s.smuggleHits.slice(0,3).join(', ')}` : 'Tespit edilmedi',
+      auto: s.smuggleHits?.length ? 'FAIL' : 'PASS',
+      id: 'smug'
+    },
+    {
+      label: 'QR Kod Analizi (Görsel Ek)',
+      sub: s.qrWarning ? 'Resim/ek tespit edildi — QR tarayıcı ile kontrol edin' : 'Görsel içerik yok',
+      auto: s.qrWarning ? 'WARN' : 'PASS',
+      id: 'qr'
+    },
+    {
+      label: 'Gizli Karakter / Unicode Tarama',
+      sub: s.unicodeHits?.length ? s.unicodeHits.map(u=>u.hex).join(', ') : 'Tespit edilmedi',
+      auto: s.unicodeHits?.length ? 'FAIL' : 'PASS',
+      id: 'uni'
+    },
+    {
+      label: 'Gönderen IP Repütasyon Kontrolü',
+      sub: s.allIPs.slice(0,2).join(', ') || 'IP tespit edilmedi',
+      auto: s.allIPs.length ? 'WARN' : 'PASS',
+      id: 'ip'
+    },
+  ];
+
+  let html = '';
+  items.forEach((item, i) => {
+    const statusCls = item.auto==='PASS' ? 'ac-s-ok' : item.auto==='FAIL' ? 'ac-s-fail' : item.auto==='WARN' ? 'ac-s-warn' : 'ac-s-pend';
+    const boxState = item.auto==='PASS' ? 'checked' : item.auto==='FAIL' ? 'fail' : '';
+    html += `<div class="ac-item" onclick="toggleAcItem(this, ${i})">
+      <div class="ac-box ${boxState}" id="ac-box-${i}"></div>
+      <div class="ac-label">${item.label}<small>${esc(item.sub)}</small></div>
+      <span class="ac-status ${statusCls}" id="ac-status-${i}">${item.auto}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+  updateAcProgress();
+}
+
+function toggleAcItem(el, idx) {
+  const box = document.getElementById('ac-box-' + idx);
+  if (box.classList.contains('checked')) { box.classList.remove('checked'); }
+  else if (box.classList.contains('fail')) { box.classList.remove('fail'); box.classList.add('checked'); }
+  else { box.classList.add('checked'); }
+  updateAcProgress();
+}
+
+function updateAcProgress() {
+  const boxes = document.querySelectorAll('.ac-box');
+  const total = boxes.length;
+  const done = [...boxes].filter(b => b.classList.contains('checked') || b.classList.contains('fail')).length;
+  document.getElementById('ac-progress-text').textContent = `${done}/${total} tamamlandı`;
+  document.getElementById('ac-prog-fill').style.width = (total ? (done/total*100) : 0) + '%';
+}
+
+function renderMitreMatrix(result) {
+  const container = document.getElementById('mitre-matrix-container');
+  // Count occurrences of each MITRE technique
+  const counts = {};
+  result.findings.forEach(f => {
+    if (f.mitre) {
+      const key = f.mitre.id;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+
+  // Get unique techniques used
+  const usedTechs = [...new Set(result.findings.filter(f=>f.mitre).map(f=>f.mitre))];
+  const allTechs = Object.values(M);
+
+  if (!usedTechs.length) {
+    container.innerHTML = '<div class="empty">MITRE tekniği tespit edilmedi.</div>';
+    return;
+  }
+
+  // Group by tactic
+  const byTactic = {};
+  allTechs.forEach(tech => {
+    const isActive = usedTechs.some(u => u.id === tech.id);
+    if (!isActive) return; // Only show active ones
+    const t = tech.tactic || 'Other';
+    if (!byTactic[t]) byTactic[t] = [];
+    byTactic[t].push({...tech, count: counts[tech.id]||0, active: true});
+  });
+
+  let html = '';
+  Object.entries(byTactic).forEach(([tactic, techs]) => {
+    html += `<div style="margin-bottom:12px">
+      <div class="mitre-tactic">${tactic}</div>
+      <div class="mitre-matrix">
+        ${techs.map(t => `
+          <div class="mitre-cell active" title="${esc(t.name)}">
+            <div class="mitre-cell-id">${t.id}</div>
+            <div class="mitre-cell-name">${esc(t.name)}</div>
+            ${t.count > 1 ? `<div class="mitre-cell-count">${t.count}</div>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderSpamScore(result) {
+  const container = document.getElementById('spam-score-container');
+  const sp = result.spamData;
+  let html = '';
+
+  if (!sp || (!sp.scl && !sp.spamScore && !sp.spamStatus)) {
+    html = '<div class="spam-score-section"><div style="font-family:var(--dm);font-size:11px;color:var(--t3)">X-Spam-Status, X-Forefront-Antispam-Report veya SCL header\'ı bulunamadı.</div></div>';
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:6px">M365, IronPort veya SpamAssassin\'dan gelen e-posta headerları bu paneli doldurur.</div>';
+    container.innerHTML = html;
+    return;
+  }
+
+  // SCL Bar (Microsoft 365)
+  if (sp.scl !== null) {
+    const sclPct = Math.min(100, (sp.scl / 9) * 100);
+    const sclColor = sp.scl >= 5 ? 'var(--flame)' : sp.scl >= 3 ? 'var(--amber)' : 'var(--acid)';
+    const sclLabel = sp.scl >= 9 ? 'SPAM (kesin)' : sp.scl >= 5 ? 'SPAM' : sp.scl >= 3 ? 'Şüpheli' : sp.scl >= 0 ? 'Temiz' : 'Bypass';
+    html += `<div class="spam-score-section">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-bottom:4px">MICROSOFT 365 — SCL (SPAM CONFIDENCE LEVEL)</div>
+      <div class="spam-label-row">
+        <span style="color:${sclColor};font-family:var(--mono);font-size:20px;font-weight:700">${sp.scl}</span>
+        <span style="color:${sclColor}">${sclLabel}</span>
+        <span>/9</span>
+      </div>
+      <div class="spam-scl-bar"><div class="spam-scl-fill" style="width:${sclPct}%;background:${sclColor}"></div></div>
+      <div class="spam-label-row" style="margin-top:2px">
+        <span>0-2: Temiz</span><span>3-4: Şüpheli</span><span>5-8: Spam</span><span>9: Kesin Spam</span>
+      </div>
+      ${sp.sfv ? `<div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:4px">SFV: ${sp.sfv}${sp.cat ? ' | CAT: ' + sp.cat : ''}</div>` : ''}
+    </div>`;
+  }
+
+  // SpamAssassin Score
+  if (sp.spamScore !== null) {
+    const scPct = Math.min(100, Math.max(0, (sp.spamScore / 15) * 100));
+    const scColor = sp.spamScore >= 5 ? 'var(--flame)' : sp.spamScore >= 3 ? 'var(--amber)' : 'var(--acid)';
+    html += `<div class="spam-score-section" style="margin-top:8px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-bottom:4px">SPAMASSASSIN — SPAM SCORE</div>
+      <div class="spam-label-row">
+        <span style="color:${scColor};font-family:var(--mono);font-size:18px;font-weight:700">${sp.spamScore}</span>
+        <span style="color:${scColor}">${sp.spamStatus === 'YES' ? '⚠ SPAM OLARAK İŞARETLENDİ' : 'Temiz'}</span>
+      </div>
+      <div class="spam-scl-bar"><div class="spam-scl-fill" style="width:${scPct}%;background:${scColor}"></div></div>
+    </div>`;
+  }
+
+  if (sp.spamFlag === 'YES') {
+    html += `<div style="font-family:var(--dm);font-size:11px;color:var(--flame);margin-top:8px;padding:6px 10px;background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.25);border-radius:3px">⚑ X-Spam-Flag: YES — Mesaj spam olarak işaretlenmiş ancak teslim edilmiş</div>`;
+  }
+
+  if (sp.forefront) {
+    html += `<div style="font-family:var(--dm);font-size:9px;color:var(--t3);margin-top:8px;padding:4px 8px;background:var(--bg2);border-radius:2px;word-break:break-all">${esc(sp.forefront)}…</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderGeoRep(result, geoData) {
+  const container = document.getElementById('georep-container');
+  let html = '';
+
+  if (!result.allIPs.length) {
+    container.innerHTML = '<div class="empty">IP adresi tespit edilmedi.</div>';
+    return;
+  }
+
+  result.allIPs.slice(0,4).forEach((ip, idx) => {
+    const geo = geoData && geoData[idx];
+    const campaignMatch = MALWARE_CAMPAIGN_RANGES.find(r => ip.startsWith(r.range));
+    const highRiskCC = geo && ['ru','cn','kp','ir','by','ve','ng','ro'].includes((geo.cc||'').toLowerCase());
+
+    html += `<div class="geo-rep-row">
+      <div style="flex:1">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${campaignMatch?'#ff4545':'var(--t0)'}">${ip}</div>
+        ${geo ? `<div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:2px">${geo.flag||'🌐'} <b style="color:var(--t2)">${geo.country||'Bilinmiyor'}</b> ${geo.city?'· '+geo.city:''} · ${(geo.isp||'Bilinmiyor').substring(0,30)}</div>` : '<div style="font-size:9px;color:var(--t3)">GeoIP: Yükleniyor...</div>'}
+        <div class="ip-cti-row">
+          <a class="cti-btn cti-vt" href="https://www.virustotal.com/gui/ip-address/${ip}" target="_blank">🔵 VirusTotal</a>
+          <a class="cti-btn cti-ab" href="https://www.abuseipdb.com/check/${ip}" target="_blank">🟠 AbuseIPDB</a>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        ${campaignMatch ? `<span class="geo-campaign-badge">⚠ ${campaignMatch.campaign}</span>` : ''}
+        ${highRiskCC ? `<span class="geo-campaign-badge" style="color:var(--amber);border-color:rgba(255,173,0,.3);background:rgba(255,173,0,.1)">HIGH RISK COUNTRY</span>` : ''}
+        ${geo?.hosting ? `<span class="geo-campaign-badge" style="color:var(--amber);border-color:rgba(255,173,0,.3);background:rgba(255,173,0,.1)">HOSTING/VPS</span>` : ''}
+        ${geo?.proxy ? `<span class="geo-campaign-badge">PROXY/TOR</span>` : ''}
+        ${!campaignMatch && !highRiskCC && !geo?.hosting && !geo?.proxy ? `<span style="font-family:var(--mono);font-size:8px;color:var(--acid)">LOW RISK</span>` : ''}
+      </div>
+    </div>`;
+  });
+
+  // QR Warning
+  if (result.qrWarning) {
+    html += `<div class="qr-checklist" style="margin-top:8px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-bottom:6px">⚠ GÖRSEL/EK TESPİT EDİLDİ — QR KOD ANALİZ LİSTESİ</div>
+      ${['QR kodu ayrı bir cihazda tarayın (sandbox)', 'QR URL\'yi manuel olarak URLScan\'e gönderin', 'İçerikteki görsel metadata\'yı inceleyin', 'Alternatif görsel içerik (logo sahteciliği) kontrolü'].map((item, i) => `
+        <div class="qr-item" onclick="this.querySelector('.qr-check').classList.toggle('checked')">
+          <div class="qr-check"></div>
+          <span>${item}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // HTML Smuggling alert in hidden section
+  if (result.smuggleHits?.length) {
+    html += `<div class="smuggle-alert" style="margin-top:8px">
+      <div class="smuggle-alert-icon">☣</div>
+      <div>
+        <strong>HTML SMUGGLING / OBFUSCATİON TESPİT EDİLDİ</strong><br>
+        ${result.hasDownloadTrigger ? '<span style="color:var(--flame)">⚡ Dosya indirme tetikleyicisi aktif — Puan 100\'e çekildi</span><br>' : ''}
+        <div style="margin-top:4px">${result.smuggleHits.slice(0,6).map(k=>`<span class="smuggle-keyword">${esc(k)}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }
+
+  // Unicode hits display
+  if (result.unicodeHits?.length) {
+    html += `<div style="margin-top:8px;padding:8px;background:rgba(255,102,204,.06);border:1px solid rgba(255,102,204,.2);border-radius:3px">
+      <div style="font-family:var(--mono);font-size:9px;color:#ff99dd;margin-bottom:6px">⚠ GİZLİ UNICODE KARAKTER TESPİT EDİLDİ</div>
+      ${result.unicodeHits.map(u=>`<div class="hchar-item">
+        <span class="hchar-hex">${u.hex}</span>
+        <span class="hchar-warn">${u.name}</span>
+        <span class="hchar-desc">— ${u.desc}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderEvidenceViewer(parsed, result) {
+  if (!parsed) return;
+  const container = document.getElementById('evidence-viewer-container');
+  const lines = buildEvidenceLines(parsed, result);
+
+  let html = '';
+  lines.forEach((line, i) => {
+    const keyHtml = `<span class="ev-key">${esc(line.k)}:</span>`;
+    const valCls = line.lineClass.includes('danger') ? 'ev-val-danger' : line.lineClass.includes('warn') ? 'ev-val-warn' : 'ev-val-ok';
+    const valHtml = `<span class="${valCls}">${esc(line.v.substring(0,120))}${line.v.length>120?'…':''}</span>`;
+    const badgesHtml = line.badges.map(b=>`<span class="ev-badge ${b.cls}">${b.txt}</span>`).join('');
+    const tooltipHtml = (line.analystNote || line.tooltip) ?
+      `<div class="ev-tooltip">${line.analystNote ? `<div class="analyst-note" style="margin:0;padding:0;border:none;background:none;color:#c09aff">${esc(line.analystNote)}</div>` : esc(line.tooltip)}</div>` : '';
+
+    html += `<div class="ev-raw-line ${line.lineClass}">
+      <span class="ev-line-num">${i+1}</span>${keyHtml} ${valHtml}${badgesHtml}${tooltipHtml}
+    </div>`;
+  });
+
+  container.innerHTML = html || '<div class="empty">Header verisi yok.</div>';
+}
+
+let parsed_global = null;
+let isAnalyzed = false;
+
+// ════════════════════════════════════════════════════════════════
+//  MAIN FLOW
+// ════════════════════════════════════════════════════════════════
+async function startAnalysis() {
+  const raw = document.getElementById('email-input').value.trim();
+  if (!raw) { alert('E-posta içeriği giriniz.'); return; }
+
+  document.getElementById('input-section').classList.add('hidden');
+  document.getElementById('loading-section').classList.remove('hidden');
+  document.getElementById('analyze-btn').disabled = true;
+
+  const vtKey = ''; const abKey = ''; const usKey = ''; // v11: link-based CTI
+
+  const steps = [
+    ['E-posta ayrıştırılıyor (header/body/attachment)...', 8],
+    ['Received zinciri analiz ediliyor...', 16],
+    ['SPF/DKIM/DMARC + Trust Balancing...', 26],
+    ['URL taraması + look-alike motoru...', 36],
+    ['Entropy & DGA tespiti...', 44],
+    ['Gizli karakter & Unicode Decoder...', 52],
+    ['HTML Smuggling & Obfuscation taraması...', 60],
+    ['Body social engineering analizi...', 67],
+    ['Spam Score & X-Forefront parsing...', 74],
+    ['IP Threat Intel — ip-api.com lookup...', 82],
+    ['CTI Köprüleri: VirusTotal / AbuseIPDB linkleri hazırlanıyor...', 90],
+    ['MITRE ATT&CK haritalama & Evidence Viewer...', 96],
+    ['Analist checklist & Karar Destek Sistemi...', 99],
+  ];
+
+  function showStep(i) {
+    document.getElementById('loading-steps').innerHTML = steps.map((s, j) => `
+      <div class="lstep ${j<i?'done':j===i?'act':''}">
+        <span class="ls-ico">${j<i?'✓':j===i?'⟳':'○'}</span>${s[0]}
+      </div>`).join('');
+    document.getElementById('progress-fill').style.width = steps[i][1] + '%';
+  }
+
+  for (let i = 0; i < steps.length - 1; i++) { showStep(i); await sl(160 + Math.random()*90); }
+
+  const parsed = parseEmail(raw);
+  parsed_global = parsed;
+  const result = runAnalysis(parsed);
+  showStep(steps.length - 1);
+
+  // IP lookups
+  const geoData = await Promise.all(result.allIPs.slice(0, 4).map(ip => lookupIP(ip)));
+
+  // v11: CTI — Geo-IP always runs, VT/AbuseIPDB links generated in render
+  const ctiData = null;
+
+  document.getElementById('progress-fill').style.width = '100%';
+  await sl(300);
+
+  document.getElementById('loading-section').classList.add('hidden');
+  document.getElementById('results-section').classList.remove('hidden');
+  render(result, geoData, ctiData, parsed);
+  isAnalyzed = true;
+  const tsEl = document.getElementById('report-timestamp');
+  if(tsEl) tsEl.textContent = '📅 ' + new Date().toLocaleString('tr-TR');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════════════════════════════
+function doReset() {
+  document.getElementById('results-section').classList.add('hidden');
+  document.getElementById('input-section').classList.remove('hidden');
+  document.getElementById('loading-section').classList.add('hidden');
+  document.getElementById('analyze-btn').disabled = false;
+  document.getElementById('email-input').value = '';
+  document.getElementById('fname-badge').classList.add('hidden');
+  window._reportData = null;
+  isAnalyzed = false;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  COPY REPORT
+// ════════════════════════════════════════════════════════════════
+function copyReport() {
+  if (!isAnalyzed || !window._reportData) { alert('Lütfen önce analiz başlatınız.'); return; }
+  const d = window._reportData;
+  const analystNotes = document.getElementById('analyst-notes-field')?.value || '';
+  const aiText = document.getElementById('ai-result-content-r')?.innerText?.replace(/<[^>]+>/g,'') || '';
+  const mitreIds = [...new Set(d.findings.filter(f=>f.mitre).map(f=>f.mitre.id))].join(', ')||'—';
+  const txt = `╔═══════════════════════════════════════════════════════════════╗
+║      PHISHGUARD TERMINATOR v11.1 — FORENSIC CTI RAPORU          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+[ FORENSIC SUMMARY ]
+Risk Skoru  : ${d.score}/100
+Karar       : ${d.verdict}
+From        : ${d.from}
+Return-Path : ${d.rp}
+Reply-To    : ${d.replyTo || '—'}
+Subject     : ${d.subj}
+X-Mailer    : ${d.xMailer || '—'}
+MITRE IDs   : ${mitreIds}
+Mod         : ${currentMode.toUpperCase()}
+Tarih       : ${new Date().toLocaleString('tr-TR')}
+
+[ GELİŞMİŞ ANALİZ — v11.1 ]
+HTML Smuggling : ${d.smuggleHits?.join(', ') || 'Tespit edilmedi'}
+Unicode/RTL    : ${d.unicodeHits?.map(u=>u.hex).join(', ') || 'Tespit edilmedi'}
+Spam SCL (M365): ${d.spamData?.scl ?? '—'}
+Spam Score     : ${d.spamData?.spamScore ?? '—'}
+Spam Flag      : ${d.spamData?.spamFlag ?? '—'}
+
+[ KİMLİK DOĞRULAMA ]
+SPF   : ${d.auth.spf.s}${d.auth.spf.ov?' [TRUST OVERRIDE]':''} — ${d.auth.spf.d}
+DKIM  : ${d.auth.dkim.s}${d.auth.dkim.ov?' [TRUST OVERRIDE]':''} — ${d.auth.dkim.d}
+DMARC : ${d.auth.dmarc.s} — ${d.auth.dmarc.d}
+${d.trustOverride ? '⚡ Trust Balancing aktif — Hacklenmiş ESP/relay şüphesi\n' : ''}
+[ BULGULAR + MITRE ATT&CK ]
+${d.findings.map(f => `[${f.l}] ${f.t}${f.mitre?' ['+f.mitre.id+' — '+f.mitre.name+']':''}`).join('\n')}
+
+[ URL ANALİZİ ]
+${d.urls.map(u => `[${u.risk.toUpperCase()}] ${u.url} — ${u.reason}`).join('\n') || 'Yok'}
+
+[ LOOK-ALIKE DOMAINLER ]
+${d.lookalikes.map(l => `${l.fake} → ${l.orig} (~${l.sim}, H=${l.ent})`).join('\n') || 'Yok'}
+
+[ EK DOSYALAR ]
+${d.attachments.map(a => `[${a.risk.toUpperCase()}] ${a.name} — ${a.reason}`).join('\n') || 'Yok'}
+
+[ IOC LİSTESİ ]
+${d.iocs.map(i => `[${i.type}][${i.risk}] ${i.val} — ${i.desc}${i.source?' ('+i.source+')':''}${i.mitre?' ['+i.mitre.id+']':''}`).join('\n') || 'Yok'}
+${analystNotes ? `\n[ ANALİST NOTLARI ]\n${analystNotes}` : ''}
+${aiText ? `\n[ AI FORENSIC YORUMU ]\n${aiText.substring(0,1200)}` : ''}`;
+
+
+  navigator.clipboard.writeText(txt)
+    .then(() => alert('✔ Forensic rapor panoya kopyalandı!'))
+    .catch(() => { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✔ Kopyalandı!'); });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PDF EXPORT — html2canvas snapshot (pixel-perfect)
+// ════════════════════════════════════════════════════════════════
+async function exportPDF() {
+  if (!isAnalyzed || !window._reportData) { alert('Lütfen önce analiz başlatınız.'); return; }
+  const d = window._reportData;
+  const btn = document.getElementById('pdf-btn');
+  btn.textContent = '⏳ PDF hazırlanıyor...'; btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const target = document.getElementById('results-section');
+
+    // Capture full rendered DOM as image
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#070b14',
+      scale: 1.6,
+      useCORS: true,
+      allowTaint: true,
+      scrollX: 0, scrollY: 0,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+      logging: false,
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.88);
+    const A4_W = 210, A4_H = 297;
+    const margin = 8;
+    const usableW = A4_W - margin * 2;
+    const canvasAspect = canvas.width / canvas.height;
+    const pageImgH = usableW / canvasAspect;
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // Cover/header strip
+    pdf.setFillColor(7, 11, 20);
+    pdf.rect(0, 0, A4_W, A4_H, 'F');
+
+    // Add header
+    pdf.setFillColor(11, 16, 32);
+    pdf.rect(0, 0, A4_W, 14, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    pdf.setTextColor(184, 255, 53);
+    pdf.text('PHISHGUARD TERMINATOR v11.1 — FORENSIC ANALİZ RAPORU', A4_W / 2, 9, {align: 'center'});
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7);
+    pdf.setTextColor(61, 80, 112);
+    pdf.text(new Date().toLocaleString('tr-TR'), A4_W - margin, 9, {align: 'right'});
+    pdf.text(`Score: ${d.score}/100  |  ${d.verdict}  |  ${d.from}`, margin, 9);
+
+    // If content fits in one page
+    if (pageImgH + 16 <= A4_H) {
+      pdf.addImage(imgData, 'JPEG', margin, 16, usableW, pageImgH);
+    } else {
+      // Multi-page: slice image into pages
+      const scaledH = A4_H - 18; // usable height per page after header
+      const totalImgHeightMM = pageImgH;
+      let yPos = 0;
+      let pageNum = 0;
+
+      while (yPos < totalImgHeightMM) {
+        if (pageNum > 0) {
+          pdf.addPage();
+          pdf.setFillColor(7, 11, 20);
+          pdf.rect(0, 0, A4_W, A4_H, 'F');
+          pdf.setFillColor(11, 16, 32);
+          pdf.rect(0, 0, A4_W, 8, 'F');
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(7);
+          pdf.setTextColor(184, 255, 53);
+          pdf.text(`PHISHGUARD TERMINATOR v11.1 — sayfa ${pageNum+1}`, A4_W/2, 5.5, {align:'center'});
+        }
+
+        const startY = pageNum === 0 ? 16 : 10;
+        const pageSliceH = A4_H - startY - 5;
+
+        // We use a clip technique: draw full image offset upward
+        const yOffsetInImage = yPos / totalImgHeightMM * pageImgH;
+        pdf.addImage(imgData, 'JPEG', margin, startY - yPos + (pageNum === 0 ? 0 : yPos - (pageNum === 0 ? 0 : (pageNum * scaledH))),
+          usableW, pageImgH, '', 'FAST');
+
+        // Clip by drawing white rects above and below
+        pdf.setFillColor(7, 11, 20);
+        if (pageNum === 0) {
+          // cover top header area (already drawn)
+        }
+        pdf.rect(0, startY + pageSliceH, A4_W, A4_H, 'F');
+        if (pageNum > 0) pdf.rect(0, 0, A4_W, startY, 'F');
+
+        yPos += pageSliceH;
+        pageNum++;
+        if (pageNum > 15) break; // safety
+      }
+    }
+
+    // Footer on last page
+    pdf.setFontSize(6);
+    pdf.setTextColor(61, 80, 112);
+    pdf.text('PhishGuard TERMINATOR v11.1 — Otomatik analiz sonucudur. Uzman değerlendirmesi önerilir.', A4_W/2, A4_H-3, {align:'center'});
+
+    pdf.save(`PhishGuardv11_${d.verdict}_Score${d.score}_${new Date().toISOString().slice(0,10)}.pdf`);
+  } catch (err) {
+    console.error(err);
+    // Fallback: text PDF
+    try { await exportPDFText(d); }
+    catch(e2) { alert('PDF oluşturulamadı: ' + err.message); }
+  }
+  btn.textContent = '⬇ PDF İNDİR'; btn.disabled = false;
+}
+
+async function exportPDFText(d) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W = 210, margin = 14; let y = margin;
+  const lh = 5;
+
+  function bg() { pdf.setFillColor(7,11,20); pdf.rect(0,0,W,297,'F'); }
+  function newPage() { pdf.addPage(); y = margin; bg(); }
+  function check(extra=0) { if (y + extra > 280) newPage(); }
+  function hline(col, text, sz, bold) {
+    pdf.setFontSize(sz||9); pdf.setFont('helvetica', bold?'bold':'normal');
+    const rgb = hexRGB(col); pdf.setTextColor(rgb[0],rgb[1],rgb[2]);
+  }
+  function hexRGB(h) { const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r?[parseInt(r[1],16),parseInt(r[2],16),parseInt(r[3],16)]:[200,220,240]; }
+  function band(col, h2=6) { const r=hexRGB(col); pdf.setFillColor(r[0],r[1],r[2]); pdf.rect(margin,y,W-2*margin,h2,'F'); }
+  function write(text, x, col, sz, bold) { hline(col,text,sz,bold); const lines=pdf.splitTextToSize(text,W-2*margin-4); pdf.text(lines,x,y); y+=lines.length*lh; }
+
+  bg();
+  band('#0d1525',10); hline('#b8ff35','PHISHGUARD TERMINATOR v11.1 FORENSIC RAPORU',10,true); pdf.text('PHISHGUARD TERMINATOR v11.1',W/2,y+6.5,{align:'center'}); y+=13;
+
+  // AI / Analyst notes at top (Forensic Summary)
+  const analystNotes = document.getElementById('analyst-notes-field')?.value || '';
+  const aiText = document.getElementById('ai-result-content-r')?.innerText?.replace(/<[^>]+>/g,'').trim() || '';
+  if (analystNotes || aiText) {
+    check(12); band('#111020',6); hline('#c09aff','FORENSIC SUMMARY — ANALİST NOTLARI + AI YORUMU',8,true);
+    pdf.text('FORENSIC SUMMARY',margin+2,y+4); y+=9;
+    if (analystNotes) { check(6); write('ANALİST NOTLARI: '+analystNotes.substring(0,200), margin, '#ccd6f0', 7); y+=2; }
+    if (aiText) { check(6); write('AI FORENSIC YORUM: '+aiText.substring(0,300), margin, '#c09aff', 7); y+=2; }
+    y+=4;
+  }
+
+  // Score row
+  const sc=d.score; const scCol=sc>=65?'#ff4545':sc>=30?'#ffad00':'#b8ff35';
+  band('#0b1020',8); hline(scCol,`SCORE: ${sc}/100  |  ${d.verdict}`,9,true); pdf.text(`SCORE: ${sc}/100  |  ${d.verdict}  |  ${new Date().toLocaleString('tr-TR')}`,margin+2,y+5.5); y+=11;
+
+  // Meta
+  [[`From: ${d.from}`,'#ccd6f0'],[`Return-Path: ${d.rp||'—'}`,'#7a8faa'],[`Reply-To: ${d.replyTo||'—'}`,'#7a8faa'],[`Subject: ${d.subj}`,'#ccd6f0']].forEach(([t,c])=>{check();write(t.substring(0,100),margin,c,8);y+=1;});
+  y+=3;
+
+  // AUTH
+  check(12); band('#111c2a',6); hline('#00e5ff','SPF / DKIM / DMARC',8,true); pdf.text('SPF / DKIM / DMARC',margin+2,y+4); y+=9;
+  [['SPF',d.auth.spf],['DKIM',d.auth.dkim],['DMARC',d.auth.dmarc]].forEach(([n,a],i)=>{
+    const c=a.s==='PASS'?'#b8ff35':a.s==='FAIL'?'#ff4545':'#ffad00';
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); const rgb=hexRGB(c); pdf.setTextColor(rgb[0],rgb[1],rgb[2]);
+    pdf.text(`${n}: ${a.s}${a.ov?' [OVERRIDE]':''}`,margin+2+(i*60),y);
+  }); y+=6;
+
+  // Findings
+  check(12); y+=3; band('#111c2a',6); hline('#00e5ff','BULGULAR + MITRE ATT&CK',8,true); pdf.text('BULGULAR + MITRE ATT&CK',margin+2,y+4); y+=9;
+  d.findings.slice(0,20).forEach(f=>{
+    check(6);
+    const lc=f.l==='HIGH'?'#ff4545':f.l==='MEDIUM'?'#ffad00':f.l==='LOW'?'#b8ff35':'#00e5ff';
+    const rgb=hexRGB(lc); pdf.setFillColor(rgb[0],rgb[1],rgb[2]);
+    pdf.setFontSize(7); pdf.setFont('helvetica','bold'); pdf.setTextColor(7,11,20); pdf.rect(margin,y-3.5,14,4.5,'F'); pdf.text(f.l,margin+1,y);
+    pdf.setFont('helvetica','normal'); pdf.setTextColor(200,210,230); const lines=pdf.splitTextToSize(f.t.substring(0,90),W-2*margin-40); pdf.text(lines,margin+16,y);
+    if(f.mitre){pdf.setTextColor(160,130,255);pdf.setFontSize(6.5);pdf.text(f.mitre.id,W-margin-16,y);}
+    y+=lines.length*4+2;
+  }); y+=3;
+
+  // URLs
+  if(d.urls.length){ check(12); band('#111c2a',6); hline('#00e5ff','URL ANALİZİ',8,true); pdf.text('URL ANALİZİ',margin+2,y+4); y+=9;
+    d.urls.slice(0,8).forEach(u=>{check(5); const c=u.risk==='danger'?'#ff4545':u.risk==='warn'?'#ffad00':'#b8ff35'; hline(c,`[${u.risk.toUpperCase()}] ${u.url.substring(0,70)}`,7); const lines=pdf.splitTextToSize(`[${u.risk.toUpperCase()}] ${u.url.substring(0,70)} — ${u.reason}`,W-2*margin-4); pdf.text(lines,margin+2,y); y+=lines.length*4+1;}); y+=3; }
+
+  // Lookalikes
+  if(d.lookalikes.length){ check(12); band('#111c2a',6); hline('#00e5ff','LOOK-ALIKE',8,true); pdf.text('LOOK-ALIKE DOMAINLER',margin+2,y+4); y+=9;
+    d.lookalikes.forEach(l=>{check(5); hline('#ff4545',`${l.fake} → ${l.orig} (~${l.sim})`,7); pdf.text(`${l.fake} → ${l.orig} (~${l.sim})`,margin+2,y); y+=5;}); y+=3; }
+
+  // IOCs
+  if(d.iocs.length){ check(12); band('#111c2a',6); hline('#00e5ff','IOC LİSTESİ',8,true); pdf.text('IOC LİSTESİ',margin+2,y+4); y+=9;
+    d.iocs.slice(0,15).forEach(ioc=>{check(5); const tc={IP:'#00e5ff',URL:'#ff4545',DOMAIN:'#ffad00',HASH:'#b8ff35',EMAIL:'#9b59f5'}[ioc.type]||'#ccd6f0'; hline(tc,`[${ioc.type}] ${ioc.val.substring(0,55)} — ${ioc.desc}`,7); const lines=pdf.splitTextToSize(`[${ioc.type}][${ioc.risk}] ${ioc.val.substring(0,55)} — ${ioc.desc}`,W-2*margin-4); pdf.text(lines,margin+2,y); y+=lines.length*4+1;}); y+=3; }
+
+  // Attachments
+  if(d.attachments.length){ check(12); band('#111c2a',6); hline('#00e5ff','EK DOSYALAR',8,true); pdf.text('EK DOSYALAR',margin+2,y+4); y+=9;
+    d.attachments.forEach(a=>{check(5); const c=a.risk==='danger'?'#ff4545':a.risk==='warn'?'#ffad00':'#b8ff35'; hline(c,`[${a.risk.toUpperCase()}] ${a.name} — ${a.reason}`,7); pdf.text(`[${a.risk.toUpperCase()}] ${a.name} — ${a.reason}`,margin+2,y); y+=5;}); }
+
+  // Footer
+  const lastY = 290; pdf.setFontSize(6); pdf.setTextColor(61,80,112);
+  pdf.text(`PhishGuard TERMINATOR v11.1  |  ${new Date().toLocaleString('tr-TR')}  |  Otomatik analiz — uzman doğrulaması önerilir.`,W/2,lastY,{align:'center'});
+  pdf.save(`PhishGuardv11_${d.verdict}_${d.score}_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  FILE UPLOAD
+// ════════════════════════════════════════════════════════════════
+const dz = document.getElementById('dropzone');
+document.getElementById('file-input').addEventListener('change', e => loadFile(e.target.files[0]));
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); loadFile(e.dataTransfer.files[0]); });
+function loadFile(f) {
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    document.getElementById('email-input').value = ev.target.result;
+    document.getElementById('fname-txt').textContent = f.name;
+    document.getElementById('fname-badge').classList.remove('hidden');
+  };
+  r.readAsText(f);
+}
+</script>
+</body>
+</html>

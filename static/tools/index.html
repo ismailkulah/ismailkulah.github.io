@@ -4,80 +4,106 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guvenlik Araclari | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:32px 16px}
-.container{max-width:960px;margin:0 auto}
-.header{text-align:center;margin-bottom:48px}
-h1{font-size:32px;color:#fff;margin-bottom:10px}
-.sub{color:#8b949e;font-size:15px;max-width:500px;margin:0 auto}
-.badge{display:inline-block;background:#21262d;border:1px solid #30363d;border-radius:20px;padding:4px 14px;font-size:12px;color:#8b949e;margin:4px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.tool-card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;text-decoration:none;color:inherit;transition:all 0.2s;display:block}
-.tool-card:hover{border-color:#58a6ff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
-.tool-icon{font-size:32px;margin-bottom:14px}
-.tool-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
-.tool-desc{font-size:13px;color:#8b949e;line-height:1.6;margin-bottom:14px}
-.tool-tags{display:flex;flex-wrap:wrap;gap:6px}
-.tag{font-size:11px;padding:2px 8px;border-radius:12px;background:#21262d;border:1px solid #30363d;color:#8b949e}
-.section-title{font-size:13px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid #21262d}
+body{font-family:'Inter',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:40px 16px}
+.container{max-width:1000px;margin:0 auto}
+.back{display:inline-flex;align-items:center;gap:6px;color:#58a6ff;font-size:13px;text-decoration:none;margin-bottom:32px;padding:6px 12px;border:1px solid #30363d;border-radius:6px;transition:all 0.2s}
+.back:hover{background:#161b22;border-color:#58a6ff}
+.header{text-align:center;margin-bottom:52px}
+h1{font-size:36px;font-weight:700;color:#fff;margin-bottom:12px;letter-spacing:-0.5px}
+.sub{color:#8b949e;font-size:15px;max-width:520px;margin:0 auto 20px;line-height:1.6}
+.badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:5px;background:#161b22;border:1px solid #30363d;border-radius:20px;padding:5px 14px;font-size:12px;color:#8b949e}
+.section-label{font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:1.5px;margin:40px 0 16px;display:flex;align-items:center;gap:12px}
+.section-label::after{content:'';flex:1;height:1px;background:#21262d}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;text-decoration:none;color:inherit;transition:all 0.2s;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,#58a6ff),transparent);opacity:0;transition:opacity 0.2s}
+.card:hover{border-color:var(--accent,#58a6ff);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.5)}
+.card:hover::before{opacity:1}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.card-icon{font-size:28px;flex-shrink:0}
+.card-badge{font-size:10px;padding:3px 8px;border-radius:12px;font-weight:600;letter-spacing:0.3px}
+.card-badge.new{background:rgba(35,134,54,0.2);color:#3fb950;border:1px solid rgba(35,134,54,0.3)}
+.card-badge.popular{background:rgba(88,166,255,0.15);color:#58a6ff;border:1px solid rgba(88,166,255,0.3)}
+.card-name{font-size:16px;font-weight:600;color:#fff}
+.card-desc{font-size:13px;color:#8b949e;line-height:1.6}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-family:'JetBrains Mono',monospace}
+.card-footer{display:flex;align-items:center;gap:6px;font-size:12px;color:#58a6ff;margin-top:auto;padding-top:8px;border-top:1px solid #21262d}
+.highlight{--accent:#00ff88}
+.highlight .card-name{color:#00ff88}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="container">
+  <a class="back" href="/">← Ana Sayfa</a>
+
   <div class="header">
     <h1>Guvenlik Araclari</h1>
-    <p class="sub">Tarayicinizda calisan ucretsiz siber guvenlik araclari. Hicbir veri sunucuya gonderilmez.</p>
-    <div style="margin-top:16px">
-      <span class="badge">Tarayici Tabanli</span>
-      <span class="badge">Ucretsiz</span>
-      <span class="badge">Gizlilik Odakli</span>
-      <span class="badge">6 Arac</span>
+    <p class="sub">Tarayicinizda calisan, sunucuya veri gondermeyen ucretsiz siber guvenlik araclari.</p>
+    <div class="badges">
+      <span class="badge">🔒 Yerel Isleme</span>
+      <span class="badge">💻 Tarayici Tabanli</span>
+      <span class="badge">🆓 Ucretsiz</span>
+      <span class="badge">⚡ Anlik Sonuc</span>
     </div>
   </div>
 
-  <div class="section-title">Analiz Araclari</div>
+  <div class="section-label">Analiz Araclari</div>
   <div class="grid">
-    <a class="tool-card" href="/tools/phishing-analyzer.html">
-      <div class="tool-icon">🎣</div>
-      <div class="tool-name">Phishing Analyzer</div>
-      <div class="tool-desc">URL ve e-posta iceriklerini phishing isaretleri acisindan analiz eder. 8 farkli kontrol, risk skoru ve detayli rapor.</div>
-      <div class="tool-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">Risk Skoru</span></div>
+    <a class="card highlight" href="/tools/phishing-analyzer/" style="--accent:#00ff88">
+      <div class="card-top">
+        <span class="card-icon">🎣</span>
+        <span class="card-badge popular">OZEL ARAÇ</span>
+      </div>
+      <div class="card-name">PhishGuard TERMINATOR</div>
+      <div class="card-desc">Gelismis phishing analiz motoru. URL, e-posta ve domain analizi. Risk skoru, IOC cikarma ve PDF rapor olusturma.</div>
+      <div class="card-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">IOC</span><span class="tag">PDF Rapor</span><span class="tag">Domain</span></div>
+      <div class="card-footer">Araci Kullan →</div>
     </a>
-    <a class="tool-card" href="/tools/hash-identifier.html">
-      <div class="tool-icon">🔎</div>
-      <div class="tool-name">Hash Identifier</div>
-      <div class="tool-desc">Hash degerini yapistir, hangi algoritmadan uretildigini otomatik tanimla. MD5, SHA ailesi, bcrypt, NTLM ve daha fazlasi.</div>
-      <div class="tool-tags"><span class="tag">MD5</span><span class="tag">SHA</span><span class="tag">NTLM</span><span class="tag">bcrypt</span></div>
+
+    <a class="card" href="/tools/hash-identifier/">
+      <div class="card-top">
+        <span class="card-icon">🔎</span>
+        <span class="card-badge new">YENI</span>
+      </div>
+      <div class="card-name">Hash Identifier</div>
+      <div class="card-desc">Hash degerini yapistir, turunu otomatik tanimla. MD5, SHA ailesi, bcrypt, NTLM ve daha fazlasi.</div>
+      <div class="card-tags"><span class="tag">MD5</span><span class="tag">SHA-256</span><span class="tag">NTLM</span><span class="tag">bcrypt</span></div>
+      <div class="card-footer">Araci Kullan →</div>
     </a>
-    <a class="tool-card" href="/tools/ip-lookup.html">
-      <div class="tool-icon">🌐</div>
-      <div class="tool-name">IP Lookup</div>
-      <div class="tool-desc">IP adresi veya domain icin konum, ISP, ASN ve ag bilgilerini goruntule. Kendi IP adresini de ogrenebilirsin.</div>
-      <div class="tool-tags"><span class="tag">Konum</span><span class="tag">ISP</span><span class="tag">ASN</span><span class="tag">WHOIS</span></div>
+
+    <a class="card" href="/tools/ip-lookup/">
+      <div class="card-top">
+        <span class="card-icon">🌐</span>
+      </div>
+      <div class="card-name">IP Lookup</div>
+      <div class="card-desc">IP adresi veya domain icin konum, ISP, ASN ve ag bilgilerini goruntule. Kendi IP'ni de ogrenebilirsin.</div>
+      <div class="card-tags"><span class="tag">Konum</span><span class="tag">ISP</span><span class="tag">ASN</span></div>
+      <div class="card-footer">Araci Kullan →</div>
     </a>
   </div>
 
-  <div class="section-title">Kriptografi Araclari</div>
+  <div class="section-label">Kriptografi Araclari</div>
   <div class="grid">
-    <a class="tool-card" href="/tools/crypto-lab.html">
-      <div class="tool-icon">🔐</div>
-      <div class="tool-name">Crypto Lab</div>
-      <div class="tool-desc">Base64, SHA/MD5 hash, Caesar cipher, Hex/Binary, ROT13/47, URL encode ve Morse kodu araclari tek sayfada.</div>
-      <div class="tool-tags"><span class="tag">Base64</span><span class="tag">Hash</span><span class="tag">Caesar</span><span class="tag">Morse</span></div>
+    <a class="card" href="/tools/crypto-lab/">
+      <div class="card-top">
+        <span class="card-icon">🔐</span>
+        <span class="card-badge popular">POPULER</span>
+      </div>
+      <div class="card-name">Crypto Lab</div>
+      <div class="card-desc">Base64, SHA hash, Caesar cipher, Hex/Binary, ROT13/47, URL encode ve Morse kodu — hepsi tek sayfada.</div>
+      <div class="card-tags"><span class="tag">Base64</span><span class="tag">Hash</span><span class="tag">Caesar</span><span class="tag">Morse</span><span class="tag">ROT</span></div>
+      <div class="card-footer">Araci Kullan →</div>
     </a>
-    <a class="tool-card" href="/tools/crypto-lab.html#hex">
-      <div class="tool-icon">🔢</div>
-      <div class="tool-name">Hex / Binary Converter</div>
-      <div class="tool-desc">Metin, hexadecimal, binary ve octal formatlar arasinda donusum. CTF sorularinda cok yaygin kullanilir.</div>
-      <div class="tool-tags"><span class="tag">Hex</span><span class="tag">Binary</span><span class="tag">Octal</span><span class="tag">ASCII</span></div>
-    </a>
-    <a class="tool-card" href="/tools/crypto-lab.html#caesar">
-      <div class="tool-icon">🏛️</div>
-      <div class="tool-name">Caesar / ROT Solver</div>
-      <div class="tool-desc">Caesar cipher ve ROT varyantlarini coz. Brute force ile 1-25 arasi tum kaydiralari tek tiklada dene.</div>
-      <div class="tool-tags"><span class="tag">Caesar</span><span class="tag">ROT13</span><span class="tag">Brute Force</span></div>
-    </a>
+  </div>
+
+  <div style="text-align:center;margin-top:48px;color:#8b949e;font-size:13px">
+    Yeni araclar ekleniyor — <a href="https://github.com/ismailkulah" style="color:#58a6ff;text-decoration:none">GitHub'da takip et</a>
   </div>
 </div>
 </body>
