@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Defanger | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:860px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--orange)}
+.soc-note{background:rgba(255,140,0,.05);border:1px solid rgba(255,140,0,.2);border-left:3px solid var(--orange);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--orange)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:13px;padding:14px;resize:vertical;min-height:120px;outline:none;transition:border-color .2s;margin-bottom:12px}
+textarea:focus{border-color:var(--cyan)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.btn{border:none;border-radius:8px;padding:10px 22px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;transition:all .2s}
+.btn-cyan{background:var(--cyan);color:#000}.btn-cyan:hover{opacity:.9}
+.btn-orange{background:var(--orange);color:#000}.btn-orange:hover{opacity:.9}
+.btn-sm{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.btn-sm:hover{color:var(--cyan);border-color:var(--cyan)}
+.output-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;min-height:80px;word-break:break-all;line-height:1.8;color:var(--green)}
+.rules{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:16px}
+.rule{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer}
+.rule input[type=checkbox]{accent-color:var(--cyan)}
+.rule-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2)}
+.section-label{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--orange);border-color:var(--orange)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">URL DEFANGER / REFANGER</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> Defanging, zararli URL/IP'leri raporlarda ve ticket sistemlerinde guvenli sekilde paylasmanin standart yontemidir. MITRE ATT&CK ve threat intel raporlarinda yaygin gorulur. <strong>http[://]evil[.]com</strong> formati clickable olmadigi icin kazara tiklanmayi onler.
+  </div>
+
+  <div class="card">
+    <div class="section-label">Defang Kurallari</div>
+    <div class="rules">
+      <label class="rule"><input type="checkbox" id="r-http" checked> http → http[:]<span class="rule-code">scheme</span></label>
+      <label class="rule"><input type="checkbox" id="r-dot" checked> . → [.]<span class="rule-code">dot</span></label>
+      <label class="rule"><input type="checkbox" id="r-at" checked> @ → [@]<span class="rule-code">email@</span></label>
+      <label class="rule"><input type="checkbox" id="r-slash" checked> :// → [://]<span class="rule-code">proto</span></label>
+      <label class="rule"><input type="checkbox" id="r-colon" > : → [:]<span class="rule-code">port</span></label>
+    </div>
+
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Ornek:</span>
+      <button class="ex-btn" onclick="loadEx('url')">Malicious URL</button>
+      <button class="ex-btn" onclick="loadEx('ip')">IP Adresi</button>
+      <button class="ex-btn" onclick="loadEx('email')">E-posta</button>
+      <button class="ex-btn" onclick="loadEx('multi')">Coklu IOC</button>
+    </div>
+
+    <div class="section-label">Girdi</div>
+    <textarea id="input" placeholder="URL, IP adresi veya e-posta adresi girin..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-cyan" onclick="defang()">Defang Et</button>
+      <button class="btn btn-orange" onclick="refang()">Refang Et</button>
+      <button class="btn-sm" onclick="swap()">↕ Yer Degistir</button>
+      <button class="btn-sm" onclick="clearAll()">Temizle</button>
+    </div>
+
+    <div class="section-label">Cikti</div>
+    <div class="output-box" id="output">Sonuc burada gorunecek</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button class="btn-sm" onclick="copyOutput()">Kopyala</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const examples={
+  url:'http://evil-phishing-site.ru/payload/dropper.exe\nhttps://malware.example.com/c2/beacon',
+  ip:'192.168.1.105\n10.0.0.1:8080\n203.0.113.42',
+  email:'attacker@evil.ru\nphishing@fake-bank.com',
+  multi:'http://malware.ru/download/trojan.exe\n192.168.105.42:4444\nattacker@evil.com\nhttps://phishing.paypal-secure.tk/login',
+};
+function loadEx(k){document.getElementById('input').value=examples[k];}
+function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent='Sonuc burada gorunecek';}
+
+function defang(){
+  let t=document.getElementById('input').value;
+  if(document.getElementById('r-http').checked){t=t.replace(/http/gi,'http[:]').replace(/https\[:\]/gi,'https[:]');}
+  if(document.getElementById('r-slash').checked){t=t.replace(/:\/\//g,'[://]').replace(/\[:\/\/\]/g,'[://]');}
+  if(document.getElementById('r-dot').checked){t=t.replace(/\./g,'[.]');}
+  if(document.getElementById('r-at').checked){t=t.replace(/@/g,'[@]');}
+  if(document.getElementById('r-colon').checked){t=t.replace(/(\d):(\d)/g,'$1[:]$2');}
+  document.getElementById('output').textContent=t;
+}
+
+function refang(){
+  let t=document.getElementById('input').value;
+  t=t.replace(/http\[:\]/gi,'http').replace(/https\[:\]/gi,'https');
+  t=t.replace(/\[:\/\/\]/g,'://');
+  t=t.replace(/\[\.\]/g,'.');
+  t=t.replace(/\[@\]/g,'@');
+  t=t.replace(/\[:\]/g,':');
+  document.getElementById('output').textContent=t;
+}
+
+function swap(){
+  const inp=document.getElementById('input');
+  const out=document.getElementById('output');
+  const tmp=inp.value;
+  inp.value=out.textContent;
+  out.textContent=tmp;
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output').textContent);
+}
+</script>
+</body>
+</html>

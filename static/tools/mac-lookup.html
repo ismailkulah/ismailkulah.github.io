@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC Lookup | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:760px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--purple)}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s;min-width:180px}
+input:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:12px 24px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:var(--cyan);color:#000;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.ex-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.result{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;display:none}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+.field-label{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+.field-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t0);font-weight:500}
+.mac-formatted{font-size:24px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:16px;letter-spacing:3px}
+.vendor-name{font-size:20px;font-weight:700;color:var(--green);margin-bottom:4px}
+.oui{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--t2)}
+.flag-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.flag-badge{font-size:12px;padding:4px 10px;border-radius:8px;border:1px solid;font-family:'JetBrains Mono',monospace}
+.flag-local{background:rgba(0,240,255,.1);color:var(--cyan);border-color:rgba(0,240,255,.3)}
+.flag-multicast{background:rgba(255,34,68,.1);color:var(--red);border-color:rgba(255,34,68,.3)}
+.flag-universal{background:rgba(0,255,136,.1);color:var(--green);border-color:rgba(0,255,136,.3)}
+.flag-unicast{background:rgba(189,0,255,.1);color:var(--purple);border-color:rgba(189,0,255,.3)}
+@media(max-width:500px){.result-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">MAC ADDRESS LOOKUP</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> MAC adresi OUI (Organizationally Unique Identifier) ilk 24 bit'ten olusur ve IEEE tarafindan uretici firmaya atanir. Network forensics ve DHCP log analizinde bilinmeyen cihazlari tanimlamak icin kullanilir. Locally Administered bit 1 ise MAC spoofing suphe ettirir.
+  </div>
+
+  <div class="card">
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Ornek:</span>
+      <button class="ex-btn" onclick="setEx('00:50:56:C0:00:08')">VMware</button>
+      <button class="ex-btn" onclick="setEx('AC:BC:32:A1:B2:C3')">Apple</button>
+      <button class="ex-btn" onclick="setEx('00:1A:2B:3C:4D:5E')">Cisco</button>
+      <button class="ex-btn" onclick="setEx('02:00:00:00:00:00')">Spoofed (LA bit)</button>
+    </div>
+    <div class="search-row" style="margin-top:10px">
+      <input id="mac-input" placeholder="AA:BB:CC:DD:EE:FF veya AABBCCDDEEFF" onkeydown="if(event.key==='Enter')lookup()">
+      <button class="btn" onclick="lookup()">Sorgula</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+// Genisletilmis OUI veritabani (yerel)
+const OUI_DB = {
+  '000C29':'VMware Inc.','005056':'VMware Inc.','000569':'VMware Inc.',
+  'ACBC32':'Apple Inc.','F0DBE2':'Apple Inc.','3C15C2':'Apple Inc.','A4C361':'Apple Inc.',
+  '001A2B':'Cisco Systems','0001C7':'Cisco Systems','00E0F9':'Cisco Systems',
+  'B827EB':'Raspberry Pi Foundation','DC2732':'Raspberry Pi Ltd',
+  '001B44':'SolarWinds','00505A':'IBM Corp.',
+  'F8F0FA':'Huawei Technologies','40A36B':'Huawei Technologies',
+  '9CB6D0':'Huawei Technologies','70F96D':'Huawei Technologies',
+  '74D435':'Dell Technologies','00074F':'Dell Technologies',
+  '1C6F65':'Dell Technologies','54BF64':'Dell Technologies',
+  '44850B':'Intel Corporate','AC7BA1':'Intel Corporate',
+  '7085C2':'Intel Corporate','8086F2':'Intel Corporate',
+  'B47C9C':'TP-Link Technologies','50D4F7':'TP-Link Technologies',
+  '54A050':'TP-Link Technologies','C46E1F':'TP-Link Technologies',
+  '000000':'Xerox Corporation (Historical)','FFFFFFFFFFFF':'Broadcast',
+};
+
+function setEx(mac){document.getElementById('mac-input').value=mac;lookup();}
+
+function normalizeMac(raw){
+  const clean=raw.replace(/[^0-9a-fA-F]/g,'').toUpperCase();
+  if(clean.length!==12)return null;
+  return [clean.slice(0,2),clean.slice(2,4),clean.slice(4,6),clean.slice(6,8),clean.slice(8,10),clean.slice(10,12)].join(':');
+}
+
+function getOUI(mac){return mac.replace(/:/g,'').slice(0,6).toUpperCase();}
+
+function checkBits(mac){
+  const firstByte=parseInt(mac.replace(/:/g,'').slice(0,2),16);
+  return{
+    multicast:(firstByte&1)===1,
+    localAdmin:(firstByte&2)===2
+  };
+}
+
+function lookup(){
+  const raw=document.getElementById('mac-input').value.trim();
+  const mac=normalizeMac(raw);
+  const r=document.getElementById('result');
+
+  if(!mac){
+    r.style.display='block';
+    r.innerHTML='<div style="color:var(--red);font-family:JetBrains Mono,monospace">Gecersiz MAC formati. Ornek: AA:BB:CC:DD:EE:FF</div>';
+    return;
+  }
+
+  const oui=getOUI(mac);
+  const vendor=OUI_DB[oui]||'Bilinmiyor (Yerel veritabaninda yok)';
+  const bits=checkBits(mac);
+  const isSpoof=bits.localAdmin;
+
+  const flags=[];
+  if(bits.multicast)flags.push({cls:'flag-multicast',text:'MULTICAST'});
+  else flags.push({cls:'flag-unicast',text:'UNICAST'});
+  if(bits.localAdmin)flags.push({cls:'flag-local',text:'⚠ LOCALLY ADMINISTERED (Spoof Suphe!)'});
+  else flags.push({cls:'flag-universal',text:'UNIVERSALLY ADMINISTERED'});
+
+  r.innerHTML=`
+    <div class="mac-formatted">${mac}</div>
+    <div class="vendor-name">${vendor}</div>
+    <div class="oui">OUI: ${oui}</div>
+    <div class="flag-row">${flags.map(f=>`<span class="flag-badge ${f.cls}">${f.text}</span>`).join('')}</div>
+    ${isSpoof?'<div style="background:rgba(255,34,68,.1);border:1px solid rgba(255,34,68,.3);border-radius:8px;padding:12px;margin-top:12px;color:var(--red);font-size:13px">⚠ Locally Administered bit aktif. Bu MAC adresi yazilimsal olarak degistirilmis olabilir (MAC Spoofing). Network access kontrollerinde dikkat.</div>':''}
+    <div class="result-grid" style="margin-top:16px">
+      <div class="field"><div class="field-label">IEEE Formati</div><div class="field-val">${mac}</div></div>
+      <div class="field"><div class="field-label">Nokta Formati</div><div class="field-val">${oui.slice(0,4)+'.'+oui.slice(4)+mac.replace(/:/g,'').slice(6,8)+'.'+mac.replace(/:/g,'').slice(8)}</div></div>
+      <div class="field"><div class="field-label">Ham (No Separator)</div><div class="field-val">${mac.replace(/:/g,'')}</div></div>
+      <div class="field"><div class="field-label">Tire Formati</div><div class="field-val">${mac.replace(/:/g,'-')}</div></div>
+    </div>`;
+  r.style.display='block';
+}
+</script>
+</body>
+</html>

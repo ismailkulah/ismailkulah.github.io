@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subdomain Finder | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:960px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--orange)}
+.soc-note{background:rgba(255,140,0,.05);border:1px solid rgba(255,140,0,.2);border-left:3px solid var(--orange);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--orange)}
+.search-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+input{flex:1;min-width:220px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:12px 24px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;transition:all .2s}
+.btn-cyan{background:var(--cyan);color:#000}.btn-cyan:hover{opacity:.9}
+.btn-sm{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.btn-sm:hover{color:var(--cyan);border-color:var(--cyan)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-family:'JetBrains Mono',monospace}
+.stat-val{font-size:22px;font-weight:700;color:var(--cyan)}
+.stat-label{font-size:11px;color:var(--t2)}
+.terminal{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.terminal-header{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.terminal-body{padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;min-height:60px;max-height:400px;overflow-y:auto}
+.log-line{line-height:1.8;display:flex;gap:8px}
+.log-time{color:var(--t2);flex-shrink:0}
+.log-msg{color:var(--green)}
+.log-found{color:var(--cyan)}
+.log-err{color:var(--red)}
+.log-info{color:var(--orange)}
+.results-table{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table-head{display:grid;grid-template-columns:1fr 140px 120px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--t2)}
+.sub-row{display:grid;grid-template-columns:1fr 140px 120px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:13px}
+.sub-row:hover{background:rgba(0,240,255,.03)}
+.sub-row:last-child{border-bottom:none}
+.subdomain{font-family:'JetBrains Mono',monospace;color:var(--cyan)}
+.source-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,240,255,.1);color:var(--cyan);border:1px solid var(--border)}
+.copy-all{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.copy-all:hover{color:var(--cyan);border-color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">SUBDOMAIN FINDER</div>
+  <div class="soc-note">
+    <strong>RED TEAM NOTU:</strong> crt.sh Certificate Transparency Log'larini kullanir. Aktif tarama yapmaz — pasif OSINT yontemi. Sonuclari Shodan, VirusTotal ve SecurityTrails ile zenginlestir. Buyuk buyuk organizasyonlarda forgotten assets bulmak icin idealdir.
+  </div>
+
+  <div class="search-row">
+    <input id="domain-input" placeholder="Ornek: example.com" onkeydown="if(event.key==='Enter')search()">
+    <button class="btn btn-cyan" onclick="search()">Tara</button>
+  </div>
+
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="stat-val" id="total-count">0</div><div class="stat-label">Toplam</div></div>
+    <div class="stat"><div class="stat-val" id="unique-count">0</div><div class="stat-label">Unique</div></div>
+    <div class="stat"><div class="stat-val" id="wildcard-count">0</div><div class="stat-label">Wildcard</div></div>
+  </div>
+
+  <div class="terminal" id="terminal" style="display:none">
+    <div class="terminal-header">
+      <span>RECON TERMINAL</span>
+      <button class="btn-sm" onclick="document.getElementById('terminal-body').innerHTML=''">Temizle</button>
+    </div>
+    <div class="terminal-body" id="terminal-body"></div>
+  </div>
+
+  <div id="results-wrap" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:13px;color:var(--t2);font-family:'JetBrains Mono',monospace">SUBDOMAINS FOUND</div>
+      <button class="copy-all" id="copy-all-btn">Tümünü Kopyala</button>
+    </div>
+    <div class="results-table">
+      <div class="table-head"><span>Subdomain</span><span>Kaynak</span><span>Islem</span></div>
+      <div id="results-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let foundSubs=[];
+
+function log(msg,cls='log-msg'){
+  const el=document.getElementById('terminal-body');
+  const time=new Date().toLocaleTimeString();
+  el.innerHTML+=`<div class="log-line"><span class="log-time">[${time}]</span><span class="${cls}">${msg}</span></div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+async function search(){
+  const domain=document.getElementById('domain-input').value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*/,'');
+  if(!domain){return;}
+  
+  foundSubs=[];
+  document.getElementById('terminal').style.display='block';
+  document.getElementById('stats').style.display='none';
+  document.getElementById('results-wrap').style.display='none';
+  document.getElementById('terminal-body').innerHTML='';
+  
+  log(`Hedef domain: ${domain}`,'log-info');
+  log('crt.sh Certificate Transparency sorgulaniyor...','log-msg');
+  
+  try{
+    const res=await fetch(`https://crt.sh/?q=%.${domain}&output=json`);
+    if(!res.ok)throw new Error('crt.sh API yanit vermedi');
+    const data=await res.json();
+    log(`${data.length} sertifika kaydi bulundu`,'log-info');
+    
+    const seen=new Set();
+    data.forEach(cert=>{
+      const names=(cert.name_value||'').split('\n');
+      names.forEach(name=>{
+        name=name.trim().toLowerCase();
+        if(name&&name.endsWith(domain)&&!seen.has(name)){
+          seen.add(name);
+          foundSubs.push({sub:name,source:'crt.sh'});
+          log(`[+] ${name}`,'log-found');
+        }
+      });
+    });
+    
+    const unique=[...new Set(foundSubs.map(s=>s.sub))];
+    const wildcards=unique.filter(s=>s.startsWith('*')).length;
+    
+    document.getElementById('total-count').textContent=foundSubs.length;
+    document.getElementById('unique-count').textContent=unique.length;
+    document.getElementById('wildcard-count').textContent=wildcards;
+    document.getElementById('stats').style.display='flex';
+    
+    if(foundSubs.length>0){
+      document.getElementById('results-list').innerHTML=foundSubs.map(s=>`
+        <div class="sub-row">
+          <span class="subdomain">${s.sub}</span>
+          <span><span class="source-badge">${s.source}</span></span>
+          <span><button class="btn-sm" onclick="navigator.clipboard.writeText('${s.sub}')">Kopyala</button></span>
+        </div>`).join('');
+      document.getElementById('copy-all-btn').onclick=()=>{
+        navigator.clipboard.writeText(foundSubs.map(s=>s.sub).join('\n'));
+        document.getElementById('copy-all-btn').textContent='Kopyalandi!';
+        setTimeout(()=>document.getElementById('copy-all-btn').textContent='Tumunu Kopyala',1500);
+      };
+      document.getElementById('results-wrap').style.display='block';
+    }
+    log(`Tarama tamamlandi. ${unique.length} unique subdomain bulundu.`,'log-msg');
+  }catch(e){
+    log(`HATA: ${e.message}`,'log-err');
+    log('Not: CORS kisitlamasi nedeniyle dogrudan API erisimi calismiyor olabilir.','log-info');
+    log('Alternatif: curl "https://crt.sh/?q=%.'+domain+'&output=json"','log-info');
+    showMockResults(domain);
+  }
+}
+
+function showMockResults(domain){
+  const mocks=['www','mail','smtp','api','dev','staging','admin','portal','vpn','remote','ftp','blog','app','cdn','static','auth','login','dashboard'].map(s=>({sub:`${s}.${domain}`,source:'Demo'}));
+  foundSubs=mocks;
+  document.getElementById('total-count').textContent=mocks.length;
+  document.getElementById('unique-count').textContent=mocks.length;
+  document.getElementById('wildcard-count').textContent=0;
+  document.getElementById('stats').style.display='flex';
+  document.getElementById('results-list').innerHTML=mocks.map(s=>`
+    <div class="sub-row">
+      <span class="subdomain">${s.sub}</span>
+      <span><span class="source-badge" style="color:var(--t2);border-color:var(--border)">${s.source}</span></span>
+      <span><button class="btn-sm" onclick="navigator.clipboard.writeText('${s.sub}')">Kopyala</button></span>
+    </div>`).join('');
+  document.getElementById('results-wrap').style.display='block';
+  log('Demo modu: Gercek sonuclar icin crt.sh API erisimi gerekir','log-info');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İsmail Külah | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--bg3:#111c30;
+  --cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;
+  --t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--t3:#2a4060;
+  --border:rgba(0,240,255,.08);--border2:rgba(0,240,255,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);overflow-x:hidden}
+
+/* SCAN LINE OVERLAY */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0px,rgba(0,0,0,.03) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:1000}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,7,18,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:16px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo::before{content:'▸';color:var(--purple);animation:blink 1.2s infinite}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{color:var(--t2);text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.5px;transition:color .2s;text-transform:uppercase}
+.nav-links a:hover{color:var(--cyan)}
+.nav-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:80px 24px 40px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;overflow:hidden}
+.grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.03) 1px,transparent 1px);background-size:60px 60px;animation:grid-move 20s linear infinite}
+@keyframes grid-move{0%{background-position:0 0}100%{background-position:60px 60px}}
+.hero-glow{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(0,240,255,.08) 0%,rgba(189,0,255,.05) 50%,transparent 70%);pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:900px;width:100%;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:28px;animation:fadeInDown .8s ease}
+.hero-name{font-size:clamp(40px,8vw,80px);font-weight:700;line-height:1.05;margin-bottom:12px;animation:fadeInUp .8s ease .1s both}
+.hero-name .first{color:var(--t0)}
+.hero-name .last{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-title{font-size:clamp(16px,3vw,22px);color:var(--t2);margin-bottom:32px;font-family:'JetBrains Mono',monospace;font-weight:300;animation:fadeInUp .8s ease .2s both}
+.typed-wrap{height:28px;margin-bottom:40px;animation:fadeInUp .8s ease .3s both}
+.typed{font-size:18px;color:var(--green);font-family:'JetBrains Mono',monospace;font-weight:500}
+.typed-cursor{color:var(--cyan);animation:blink .7s infinite}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeInUp .8s ease .4s both}
+.btn-hero{padding:13px 28px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;text-decoration:none;font-family:'Rajdhani',sans-serif;display:inline-flex;align-items:center;gap:8px;border:none}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,240,255,.3)}
+.btn-outline{background:transparent;color:var(--cyan);border:1px solid var(--cyan)}
+.btn-outline:hover{background:rgba(0,240,255,.08);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:40px;justify-content:center;margin-top:56px;animation:fadeInUp .8s ease .5s both;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-num{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-lbl{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;color:var(--t3);font-size:20px}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* TERMINAL SECTION */
+.terminal-section{padding:80px 24px;background:var(--bg1)}
+.section-wrap{max-width:1000px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:48px}
+.section-eyebrow{font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px}
+.section-title{font-size:clamp(26px,4vw,40px);font-weight:700;color:var(--t0)}
+.terminal-window{background:var(--bg);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.terminal-titlebar{padding:12px 16px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.dot-r{width:12px;height:12px;border-radius:50%;background:#ff5f56}
+.dot-y{width:12px;height:12px;border-radius:50%;background:#ffbd2e}
+.dot-g{width:12px;height:12px;border-radius:50%;background:#27c93f}
+.terminal-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);margin-left:8px}
+.terminal-body{padding:24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2}
+.t-prompt{color:var(--cyan)}
+.t-cmd{color:var(--t0)}
+.t-out{color:var(--green)}
+.t-out2{color:var(--t1)}
+.t-comment{color:var(--t2)}
+.t-purple{color:var(--purple)}
+.t-orange{color:var(--orange)}
+
+/* TOOLS SECTION */
+.tools-section{padding:80px 24px}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;max-width:1100px;margin:0 auto}
+.tool-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:24px;text-decoration:none;color:inherit;transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,linear-gradient(90deg,var(--cyan),var(--purple)));opacity:0;transition:opacity .25s}
+.tool-card:hover{border-color:rgba(0,240,255,.3);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.tool-card:hover::before{opacity:1}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.badge-new{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.card-name{font-size:16px;font-weight:700;color:var(--t0)}
+.card-desc{font-size:13px;color:var(--t2);line-height:1.6}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(0,240,255,.06);border:1px solid var(--border);color:var(--t2);font-family:'JetBrains Mono',monospace}
+.card-arrow{font-size:13px;color:var(--t3);margin-top:auto;transition:color .2s}
+.tool-card:hover .card-arrow{color:var(--cyan)}
+
+/* SKILLS */
+.skills-section{padding:80px 24px;background:var(--bg1)}
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;max-width:1000px;margin:0 auto}
+.skill-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
+.skill-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.skill-name{font-size:13px;font-weight:600;color:var(--t1)}
+.skill-pct{font-size:12px;color:var(--cyan);font-family:'JetBrains Mono',monospace}
+.skill-bar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden}
+.skill-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+
+/* CERTS */
+.certs-section{padding:80px 24px}
+.certs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;max-width:900px;margin:0 auto}
+.cert-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px}
+.cert-icon{font-size:28px;flex-shrink:0}
+.cert-name{font-size:14px;font-weight:700;color:var(--t0)}
+.cert-status{font-size:11px;margin-top:3px;font-family:'JetBrains Mono',monospace}
+.cert-done{color:var(--green)}
+.cert-progress{color:var(--orange)}
+.cert-planned{color:var(--t2)}
+
+/* FOOTER */
+footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border);text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap}
+.footer-links a{color:var(--t2);text-decoration:none;font-size:13px;transition:color .2s;font-family:'JetBrains Mono',monospace}
+.footer-links a:hover{color:var(--cyan)}
+.footer-copy{font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+
+/* ANIMATIONS */
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+
+/* MATRIX RAIN CANVAS */
+#matrix-canvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.06;pointer-events:none}
+
+@media(max-width:600px){.nav-links{display:none}.hero-stats{gap:24px}.tools-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">ismailkulah@cybersec:~$</a>
+  <ul class="nav-links">
+    <li><a href="/tools/">Araçlar</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/writeups/">Write-ups</a></li>
+    <li><a href="/about/">Hakkımda</a></li>
+  </ul>
+  <div class="nav-status"><div class="status-dot"></div>ONLINE</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="matrix-canvas"></canvas>
+  <div class="hero-bg">
+    <div class="grid-lines"></div>
+    <div class="hero-glow"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span>◈</span>
+      <span>Siber Güvenlik Uzmanı & CTF Player</span>
+    </div>
+    <h1 class="hero-name">
+      <span class="first">İsmail </span><span class="last">Külah</span>
+    </h1>
+    <div class="hero-title">Security Analyst | Forensic Investigator | Red & Blue Team</div>
+    <div class="typed-wrap">
+      <span class="typed" id="typed-text"></span><span class="typed-cursor">_</span>
+    </div>
+    <div class="hero-btns">
+      <a class="btn-hero btn-primary" href="/tools/">Araçları Keşfet</a>
+      <a class="btn-hero btn-outline" href="/about/">Profil</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">10+</div><div class="stat-lbl">Güvenlik Aracı</div></div>
+      <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">CTF Çözümü</div></div>
+      <div class="stat"><div class="stat-num">5+</div><div class="stat-lbl">Yıl Deneyim</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Açık Kaynak</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<!-- TERMINAL -->
+<section class="terminal-section">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-eyebrow">whoami</div>
+      <h2 class="section-title">Sistem Profili</h2>
+    </div>
+    <div class="terminal-window">
+      <div class="terminal-titlebar">
+        <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+        <span class="terminal-name">ismailkulah@cybersec-lab — zsh</span>
+      </div>
+      <div class="terminal-body" id="terminal-content"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools-section">
+  <div class="section-header">
+    <div class="section-eyebrow">ls -la /tools/</div>
+    <h2 class="section-title">Güvenlik Araçları</h2>
+  </div>
+  <div class="tools-grid">
+    <a class="tool-card" href="/tools/phishing-analyzer/" style="--card-accent:linear-gradient(90deg,#ff2244,#ff8c00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,34,68,.1)">🎣</div><div class="card-badges"><span class="badge-new" style="background:rgba(255,34,68,.2);color:#ff2244;border:1px solid rgba(255,34,68,.3)">ÖZEL</span></div></div>
+      <div class="card-name">PhishGuard Terminator</div>
+      <div class="card-desc">Gelişmiş phishing analiz motoru. URL, e-posta ve domain risk analizi + PDF rapor.</div>
+      <div class="card-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">IOC</span><span class="tag">PDF Rapor</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/cve-dashboard/" style="--card-accent:linear-gradient(90deg,#ff8c00,#ffcc00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🛡️</div></div>
+      <div class="card-name">CVE Dashboard</div>
+      <div class="card-desc">2024 CVE veritabanı. CVSS skorları, severity filtreleme ve detaylı zafiyet analizi.</div>
+      <div class="card-tags"><span class="tag">CVE</span><span class="tag">CVSS</span><span class="tag">NVD</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/reverse-shell-gen/" style="--card-accent:linear-gradient(90deg,#bd00ff,#ff2244)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">💀</div><div class="card-badges"><span class="badge-new" style="background:rgba(189,0,255,.2);color:#bd00ff;border:1px solid rgba(189,0,255,.3)">RED TEAM</span></div></div>
+      <div class="card-name">Reverse Shell Generator</div>
+      <div class="card-desc">Bash, Python, Netcat, PowerShell ve daha fazlası için reverse shell payload üretici.</div>
+      <div class="card-tags"><span class="tag">Bash</span><span class="tag">Python</span><span class="tag">PowerShell</span><span class="tag">Msfvenom</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/jwt-decoder/" style="--card-accent:linear-gradient(90deg,#00f0ff,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔑</div></div>
+      <div class="card-name">JWT Decoder</div>
+      <div class="card-desc">JSON Web Token analizi. alg:none tespiti, expire kontrolü, admin claim analizi.</div>
+      <div class="card-tags"><span class="tag">JWT</span><span class="tag">Auth</span><span class="tag">alg:none</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/subdomain-finder/" style="--card-accent:linear-gradient(90deg,#00ff88,#00f0ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🔍</div></div>
+      <div class="card-name">Subdomain Finder</div>
+      <div class="card-desc">crt.sh Certificate Transparency tabanlı pasif subdomain keşif aracı.</div>
+      <div class="card-tags"><span class="tag">OSINT</span><span class="tag">crt.sh</span><span class="tag">Recon</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/crypto-lab/" style="--card-accent:linear-gradient(90deg,#ffcc00,#ff8c00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,204,0,.1)">🔐</div></div>
+      <div class="card-name">Crypto Lab</div>
+      <div class="card-desc">Base64, SHA hash, Caesar, Hex/Binary, ROT13/47, URL encode, Morse — tek sayfada.</div>
+      <div class="card-tags"><span class="tag">Base64</span><span class="tag">Hash</span><span class="tag">Caesar</span><span class="tag">Morse</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/hash-identifier/" style="--card-accent:linear-gradient(90deg,#00f0ff,#00ff88)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔎</div></div>
+      <div class="card-name">Hash Identifier</div>
+      <div class="card-desc">MD5, SHA ailesi, NTLM, bcrypt ve daha fazlasını otomatik tanımla.</div>
+      <div class="card-tags"><span class="tag">MD5</span><span class="tag">SHA-256</span><span class="tag">NTLM</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/ip-lookup/" style="--card-accent:linear-gradient(90deg,#bd00ff,#00f0ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">🌐</div></div>
+      <div class="card-name">IP Lookup</div>
+      <div class="card-desc">IP adresi konum, ISP, ASN ve ağ bilgisi sorgulama. Kendi IP'ni öğren.</div>
+      <div class="card-tags"><span class="tag">GeoIP</span><span class="tag">ASN</span><span class="tag">ISP</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/password-generator/" style="--card-accent:linear-gradient(90deg,#00ff88,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🔒</div><div class="card-badges"><span class="badge-new" style="background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3)">YENİ</span></div></div>
+      <div class="card-name">Password Generator</div>
+      <div class="card-desc">Kriptografik güvenli parola üretici + entropi analizi + brute-force süre tahmini.</div>
+      <div class="card-tags"><span class="tag">Entropi</span><span class="tag">CSPRNG</span><span class="tag">NIST</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/url-defanger/" style="--card-accent:linear-gradient(90deg,#ff8c00,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🛡️</div></div>
+      <div class="card-name">URL Defanger</div>
+      <div class="card-desc">Tehlikeli URL ve IP'leri güvenli raporlama formatına dönüştür. MITRE standart.</div>
+      <div class="card-tags"><span class="tag">IOC</span><span class="tag">Defang</span><span class="tag">Rapor</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/mac-lookup/" style="--card-accent:linear-gradient(90deg,#00f0ff,#ff8c00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">📡</div></div>
+      <div class="card-name">MAC Address Lookup</div>
+      <div class="card-desc">OUI vendor sorgusu, MAC spoofing tespiti ve format dönüşümü.</div>
+      <div class="card-tags"><span class="tag">OUI</span><span class="tag">Forensics</span><span class="tag">Network</span></div>
+      <div class="card-arrow">Araci Kullan →</div>
+    </a>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="skills-section">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-eyebrow">skill --list</div>
+      <h2 class="section-title">Teknik Yetkinlikler</h2>
+    </div>
+    <div class="skills-grid" id="skills-grid"></div>
+  </div>
+</section>
+
+<!-- CERTS -->
+<section class="certs-section">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-eyebrow">cat certifications.json</div>
+      <h2 class="section-title">Sertifikalar & Hedefler</h2>
+    </div>
+    <div class="certs-grid">
+      <div class="cert-card"><span class="cert-icon">🏆</span><div><div class="cert-name">CompTIA Security+</div><div class="cert-status cert-progress">⟳ Hazırlanıyor</div></div></div>
+      <div class="cert-card"><span class="cert-icon">🎯</span><div><div class="cert-name">CEH — Certified Ethical Hacker</div><div class="cert-status cert-progress">⟳ Planlı</div></div></div>
+      <div class="cert-card"><span class="cert-icon">💀</span><div><div class="cert-name">OSCP — Offensive Security</div><div class="cert-status cert-planned">○ Hedef</div></div></div>
+      <div class="cert-card"><span class="cert-icon">🔬</span><div><div class="cert-name">GCFA — GIAC Forensic Analyst</div><div class="cert-status cert-planned">○ Hedef</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/ismailkulah" target="_blank">github.com/ismailkulah</a>
+    <a href="https://linkedin.com/in/ismailkulah" target="_blank">linkedin.com/in/ismailkulah</a>
+    <a href="/tools/">tools</a>
+    <a href="/blog/">blog</a>
+  </div>
+  <div class="footer-copy">© 2024 İsmail Külah — Built with Hugo & ❤️ | ismailkulah.github.io</div>
+</footer>
+
+<script>
+// MATRIX RAIN
+const canvas=document.getElementById('matrix-canvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+const chars='01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
+const cols=Math.floor(canvas.width/16);
+const drops=Array(cols).fill(1);
+function drawMatrix(){
+  ctx.fillStyle='rgba(3,7,18,.05)';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#00f0ff';ctx.font='14px JetBrains Mono';
+  drops.forEach((y,i)=>{
+    ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*16,y*16);
+    if(y*16>canvas.height&&Math.random()>.97)drops[i]=0;
+    drops[i]++;
+  });
+}
+setInterval(drawMatrix,60);
+
+// TYPED EFFECT
+const phrases=['Threat Hunting...','Digital Forensics...','Penetration Testing...','CTF Challenges...','SOC Analysis...','Malware Reverse Engineering...'];
+let pi=0,ci=0,del=false;
+function typed(){
+  const el=document.getElementById('typed-text');
+  const phrase=phrases[pi];
+  if(!del){el.textContent=phrase.substring(0,ci+1);ci++;if(ci===phrase.length){del=true;setTimeout(typed,1800);return;}}
+  else{el.textContent=phrase.substring(0,ci-1);ci--;if(ci===0){del=false;pi=(pi+1)%phrases.length;}}
+  setTimeout(typed,del?40:80);
+}
+typed();
+
+// TERMINAL ANIMATION
+const lines=[
+  {t:'prompt',txt:'whoami'},
+  {t:'out',txt:'ismail-kulah'},
+  {t:'prompt',txt:'cat /etc/profile'},
+  {t:'comment',txt:'# Siber Güvenlik Uzmanı | SOC Analist | Penetration Tester'},
+  {t:'purple',txt:'Role:     Security Analyst & CTF Player'},
+  {t:'orange',txt:'Location: Turkey 🇹🇷'},
+  {t:'out',txt:'LinkedIn: linkedin.com/in/ismailkulah'},
+  {t:'prompt',txt:'skills --list --verbose'},
+  {t:'out',txt:'[★★★★★] Digital Forensics (Autopsy, Volatility, FTK)'},
+  {t:'out',txt:'[★★★★★] Threat Hunting (MITRE ATT&CK, SIEM, EDR)'},
+  {t:'out',txt:'[★★★★☆] Penetration Testing (Burp Suite, Metasploit, Nmap)'},
+  {t:'out',txt:'[★★★★☆] Malware Analysis (Static + Dynamic)'},
+  {t:'out',txt:'[★★★☆☆] Reverse Engineering (Ghidra, IDA Free)'},
+  {t:'prompt',txt:'ls ./certifications/'},
+  {t:'orange',txt:'security+.planned  ceh.in-progress  oscp.target  gcfa.target'},
+  {t:'prompt',txt:'echo $STATUS'},
+  {t:'green',txt:'ONLINE — Ready for new challenges 🔐'},
+];
+const colorMap={prompt:'t-prompt',out:'t-out',comment:'t-comment',purple:'t-purple',orange:'t-orange',green:'t-out'};
+let li=0;
+function addLine(){
+  if(li>=lines.length)return;
+  const l=lines[li++];
+  const el=document.getElementById('terminal-content');
+  const div=document.createElement('div');
+  const prefix=l.t==='prompt'?'<span class="t-prompt">ismailkulah@cybersec:~$ </span>':'';
+  div.innerHTML=prefix+`<span class="${colorMap[l.t]||'t-out2'}">${l.txt}</span>`;
+  el.appendChild(div);
+  setTimeout(addLine,li<3?400:120);
+}
+setTimeout(addLine,600);
+
+// SKILLS
+const skills=[
+  {n:'SIEM (Splunk/ELK)',v:88},{n:'Digital Forensics',v:90},{n:'Threat Hunting',v:85},
+  {n:'Penetration Testing',v:80},{n:'Malware Analysis',v:75},{n:'Python / Scripting',v:78},
+  {n:'Network Security',v:82},{n:'CTF / Exploitation',v:85},{n:'OSINT',v:88},{n:'Blue Team',v:90},
+  {n:'Reverse Engineering',v:65},{n:'Cloud Security',v:60},
+];
+document.getElementById('skills-grid').innerHTML=skills.map(s=>`
+  <div class="skill-item">
+    <div class="skill-top"><span class="skill-name">${s.n}</span><span class="skill-pct">${s.v}%</span></div>
+    <div class="skill-bar"><div class="skill-fill" style="width:0%" data-w="${s.v}%"></div></div>
+  </div>`).join('');
+
+// Animate skill bars on scroll
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.querySelectorAll('.skill-fill').forEach(b=>b.style.width=b.dataset.w)});
+},{threshold:.3});
+document.querySelectorAll('.skills-section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
