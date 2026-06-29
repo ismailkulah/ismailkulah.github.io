@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT Decoder | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--yellow:#ffcc00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:960px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--purple)}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+textarea{width:100%;background:var(--bg1);border:1px solid var(--border);border-radius:10px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:13px;padding:16px;resize:vertical;min-height:120px;outline:none;transition:border-color .2s;margin-bottom:14px}
+textarea:focus{border-color:var(--cyan)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.btn{border:none;border-radius:8px;padding:10px 22px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;transition:all .2s}
+.btn-cyan{background:var(--cyan);color:#000}.btn-cyan:hover{opacity:.9}
+.btn-sm{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.btn-sm:hover{color:var(--cyan);border-color:var(--cyan)}
+.results{display:none}
+.jwt-visual{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all}
+.jwt-header-part{color:var(--red);font-weight:700}
+.jwt-payload-part{color:var(--purple);font-weight:700}
+.jwt-sig-part{color:var(--cyan);font-weight:700}
+.dot{color:var(--t2)}
+.sections{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.section{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.section-title{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.section-body{padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto}
+.alerts{margin-bottom:16px}
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;margin-bottom:8px;font-size:13px}
+.alert.warn{background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.25);color:var(--yellow)}
+.alert.danger{background:rgba(255,34,68,.08);border:1px solid rgba(255,34,68,.25);color:var(--red)}
+.alert.ok{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:var(--green)}
+.claims-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.claim{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.claim-key{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.claim-val{font-size:13px;color:var(--t0);font-weight:600}
+.claim-val.expired{color:var(--red)}
+.claim-val.valid{color:var(--green)}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+@media(max-width:600px){.sections{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">JWT DECODER</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> JWT (JSON Web Token) kimlik dogrulama mekanizmasini analiz eder. Yapisi: Header.Payload.Signature. <strong>alg:none</strong> saldirisi, zayif secret ve expire edilmemis tokenlar kritik bulgulardır. Payload'daki hassas veriyi (PII, admin claims) kontrol et.
+  </div>
+
+  <div class="examples">
+    <span style="font-size:11px;color:var(--t2);align-self:center">Ornek:</span>
+    <button class="ex-btn" onclick="loadExample('hs256')">HS256 Token</button>
+    <button class="ex-btn" onclick="loadExample('rs256')">RS256 Token</button>
+    <button class="ex-btn" onclick="loadExample('none')">alg:none (Zafiyetli!)</button>
+    <button class="ex-btn" onclick="loadExample('admin')">Admin Claim</button>
+  </div>
+
+  <textarea id="jwt-input" placeholder="JWT token yapistir: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+  <div class="btn-row">
+    <button class="btn btn-cyan" onclick="decode()">Decode Et</button>
+    <button class="btn-sm" onclick="clearAll()">Temizle</button>
+  </div>
+
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const examples = {
+  hs256: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IklzbWFpbCBLdWxhaCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzE2MDAwMDAwLCJleHAiOjk5OTk5OTk5OTl9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+  rs256: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0xIn0.eyJzdWIiOiJ1c2VyXzEyMyIsImlzcyI6Imh0dHBzOi8vYXV0aC5leGFtcGxlLmNvbSIsImF1ZCI6ImFwaS5leGFtcGxlLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzE2MDAwMDAwLCJleHAiOjk5OTk5OTk5OTl9.signature',
+  none: 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjMiLCJuYW1lIjoiQWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MTYwMDAwMDB9.',
+  admin: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTkiLCJuYW1lIjoiSGFja2VyIiwicm9sZSI6ImFkbWluIiwiaXNBZG1pbiI6dHJ1ZSwiZW1haWwiOiJoYWNrZXJAZXZpbC5jb20iLCJpYXQiOjE3MTYwMDAwMDAsImV4cCI6MTcxNjAwMDEwMH0.signature',
+};
+
+function loadExample(k){document.getElementById('jwt-input').value=examples[k];decode();}
+function clearAll(){document.getElementById('jwt-input').value='';document.getElementById('results').style.display='none';}
+
+function safeB64Decode(str){
+  try{
+    str=str.replace(/-/g,'+').replace(/_/g,'/');
+    while(str.length%4)str+='=';
+    return JSON.parse(atob(str));
+  }catch{return null;}
+}
+
+function formatDate(ts){
+  if(!ts)return null;
+  const d=new Date(ts*1000);
+  return d.toISOString().replace('T',' ').substring(0,19)+' UTC';
+}
+
+function decode(){
+  const raw=document.getElementById('jwt-input').value.trim();
+  if(!raw){return;}
+  const parts=raw.split('.');
+  if(parts.length<2){
+    document.getElementById('results').style.display='block';
+    document.getElementById('results').innerHTML='<div style="color:var(--red);font-family:JetBrains Mono,monospace;padding:20px">Gecersiz JWT formati. En az 2 bolum olmali (header.payload)</div>';
+    return;
+  }
+
+  const header=safeB64Decode(parts[0]);
+  const payload=safeB64Decode(parts[1]);
+  const sig=parts[2]||'(yok)';
+  const now=Math.floor(Date.now()/1000);
+
+  const alerts=[];
+  if(header?.alg==='none')alerts.push({type:'danger',icon:'🚨',msg:'<strong>KRITIK: alg:none!</strong> Imza dogrulamasi devre disi. CVE-2015-9235 benzeri saldiri vektoru.'});
+  if(header?.alg?.startsWith('HS')&&header?.alg!=='none')alerts.push({type:'warn',icon:'⚠️',msg:'Simetrik imza (HMAC). Secret anahtar zayif veya tahmin edilebilir olabilir. Brute-force ile kirılabilir.'});
+  if(payload?.exp&&payload.exp<now)alerts.push({type:'warn',icon:'⏰',msg:`Token suresi dolmus. Expire: ${formatDate(payload.exp)}`});
+  if(payload?.role==='admin'||payload?.isAdmin===true||payload?.admin===true)alerts.push({type:'danger',icon:'👑',msg:'Admin/elevated claim tespit edildi. Privilege escalation riski.'});
+  if(!payload?.exp)alerts.push({type:'warn',icon:'♾️',msg:'Token expire suresi yok. Sonsuza kadar gecerli — kritik guvenlik riski.'});
+  if(sig==='(yok)'||sig==='')alerts.push({type:'danger',icon:'✂️',msg:'Imza bolumu bos! alg:none saldirisi veya bozuk token.'});
+  if(alerts.length===0)alerts.push({type:'ok',icon:'✅',msg:'Belirgin bir guvenlik sorunu tespit edilmedi.'});
+
+  const colorParts=`<span class="jwt-header-part">${parts[0]}</span><span class="dot">.</span><span class="jwt-payload-part">${parts[1]||''}</span><span class="dot">.</span><span class="jwt-sig-part">${parts[2]||'(imzasiz)'}</span>`;
+
+  const claimsHtml=payload?Object.entries(payload).map(([k,v])=>{
+    let display=String(v);let cls='';
+    if((k==='exp'||k==='iat'||k==='nbf')&&typeof v==='number'){
+      display=formatDate(v)+(k==='exp'?v<now?' <span style="color:var(--red)">[EXPIRED]</span>':' <span style="color:var(--green)">[VALID]</span>':'');
+      cls=k==='exp'?(v<now?' expired':' valid'):'';
+    }
+    if(v===true||v===false)display=v?'true':'false';
+    return `<div class="claim"><div class="claim-key">${k}</div><div class="claim-val${cls}">${display}</div></div>`;
+  }).join(''):'<div style="color:var(--red)">Payload decode edilemedi</div>';
+
+  document.getElementById('results').innerHTML=`
+    <div style="background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;font-size:12px;line-height:1.8">
+      ${colorParts}
+    </div>
+    <div class="alerts">${alerts.map(a=>`<div class="alert ${a.type}">${a.icon} ${a.msg}</div>`).join('')}</div>
+    <div class="sections">
+      <div class="section">
+        <div class="section-title"><span style="color:var(--red)">▌ HEADER</span><button class="btn-sm" onclick="navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(header)},null,2))">Kopyala</button></div>
+        <div class="section-body">${header?JSON.stringify(header,null,2):'Decode edilemedi'}</div>
+      </div>
+      <div class="section">
+        <div class="section-title"><span style="color:var(--purple)">▌ PAYLOAD</span><button class="btn-sm" onclick="navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(payload)},null,2))">Kopyala</button></div>
+        <div class="section-body">${payload?JSON.stringify(payload,null,2):'Decode edilemedi'}</div>
+      </div>
+    </div>
+    ${payload?`<div style="margin-bottom:16px"><div style="font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">CLAIMS</div><div class="claims-grid">${claimsHtml}</div></div>`:''}
+    <div class="section">
+      <div class="section-title"><span style="color:var(--cyan)">▌ SIGNATURE</span></div>
+      <div class="section-body" style="color:var(--t2)">${sig}</div>
+    </div>`;
+  document.getElementById('results').style.display='block';
+}
+</script>
+</body>
+</html>

