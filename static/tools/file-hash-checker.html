@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Hash Checker | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:760px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--purple)}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+.dropzone{background:var(--bg1);border:2px dashed var(--border);border-radius:14px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .25s;margin-bottom:20px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--cyan);background:rgba(0,240,255,.03)}
+.dropzone-icon{font-size:40px;margin-bottom:14px}
+.dropzone-text{font-size:15px;color:var(--t1);font-weight:600}
+.dropzone-sub{font-size:12px;color:var(--t2);margin-top:6px}
+#file-input{display:none}
+.file-info{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;display:none;align-items:center;gap:14px}
+.file-icon{font-size:28px}
+.file-name{font-size:14px;font-weight:700;color:var(--t0)}
+.file-meta{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.progress-bar{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0%;transition:width .2s}
+.hash-results{display:none}
+.hash-item{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.hash-algo{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.hash-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);word-break:break-all}
+.copy-btn{font-size:10px;padding:3px 10px;border-radius:6px;background:var(--bg2);color:var(--t2);border:1px solid var(--border);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.copy-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.compare-section{margin-top:24px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;display:none}
+.compare-title{font-size:13px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px;outline:none;margin-bottom:10px}
+input:focus{border-color:var(--cyan)}
+.match-result{padding:12px 16px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;margin-top:10px}
+.match-yes{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+.match-no{background:rgba(255,34,68,.1);color:var(--red);border:1px solid rgba(255,34,68,.3)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">FILE HASH CHECKER</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> Dosya butunlugunu dogrulamak ve malware tespiti icin kullanilir. Hesaplanan hash'i VirusTotal'da arayarak bilinen zararli yazilim imzalariyla karsilastir. Dosya hicbir zaman sunucuya yuklenmez — tum islem tarayicinda (client-side) gerceklesir.
+  </div>
+
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+    <div class="dropzone-icon">📁</div>
+    <div class="dropzone-text">Dosyayi buraya surukle veya tikla</div>
+    <div class="dropzone-sub">Dosya sunucuya gonderilmez — tamamen yerel islem</div>
+  </div>
+  <input type="file" id="file-input" onchange="handleFile(this.files[0])">
+
+  <div class="file-info" id="file-info">
+    <span class="file-icon">📄</span>
+    <div style="flex:1">
+      <div class="file-name" id="file-name"></div>
+      <div class="file-meta" id="file-meta"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="hash-results" id="hash-results"></div>
+
+  <div class="compare-section" id="compare-section">
+    <div class="compare-title">Hash Karsilastirma</div>
+    <input id="compare-input" placeholder="Karsilastirmak icin bilinen hash degerini yapistir...">
+    <div id="compare-result"></div>
+  </div>
+</div>
+
+<script>
+const dropzone=document.getElementById('dropzone');
+let currentHashes={};
+
+dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.classList.add('dragover');});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop',e=>{
+  e.preventDefault();dropzone.classList.remove('dragover');
+  if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);
+});
+
+function formatBytes(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return(b/1024).toFixed(1)+' KB';
+  if(b<1073741824)return(b/1048576).toFixed(1)+' MB';
+  return(b/1073741824).toFixed(2)+' GB';
+}
+
+async function handleFile(file){
+  if(!file)return;
+  document.getElementById('file-info').style.display='flex';
+  document.getElementById('file-name').textContent=file.name;
+  document.getElementById('file-meta').textContent=`${formatBytes(file.size)} • ${file.type||'unknown type'}`;
+  document.getElementById('hash-results').style.display='none';
+  document.getElementById('compare-section').style.display='none';
+  
+  const progressFill=document.getElementById('progress-fill');
+  progressFill.style.width='20%';
+
+  const buffer=await file.arrayBuffer();
+  progressFill.style.width='50%';
+
+  const algos=['SHA-1','SHA-256','SHA-384','SHA-512'];
+  currentHashes={};
+  let html='';
+  
+  for(let i=0;i<algos.length;i++){
+    const algo=algos[i];
+    const hashBuffer=await crypto.subtle.digest(algo,buffer);
+    const hex=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    currentHashes[algo]=hex;
+    progressFill.style.width=`${50+((i+1)/algos.length)*50}%`;
+  }
+
+  // MD5 (manuel implementasyon - SubtleCrypto MD5 desteklemiyor)
+  const md5Hash=await md5(buffer);
+  currentHashes['MD5']=md5Hash;
+
+  html=Object.entries(currentHashes).map(([algo,hash])=>`
+    <div class="hash-item">
+      <div class="hash-algo">
+        <span>${algo}</span>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('${hash}');this.textContent='Kopyalandi!'">Kopyala</button>
+      </div>
+      <div class="hash-val">${hash}</div>
+    </div>`).join('');
+
+  document.getElementById('hash-results').innerHTML=html;
+  document.getElementById('hash-results').style.display='block';
+  document.getElementById('compare-section').style.display='block';
+  
+  document.getElementById('compare-input').oninput=function(){
+    const val=this.value.trim().toLowerCase();
+    const resultDiv=document.getElementById('compare-result');
+    if(!val){resultDiv.innerHTML='';return;}
+    const matched=Object.entries(currentHashes).find(([algo,hash])=>hash.toLowerCase()===val);
+    if(matched){
+      resultDiv.innerHTML=`<div class="match-result match-yes">✅ ESLESTI! (${matched[0]})</div>`;
+    }else{
+      resultDiv.innerHTML=`<div class="match-result match-no">❌ Eslesme bulunamadi</div>`;
+    }
+  };
+}
+
+// Basit MD5 implementasyonu (JS native MD5 yok)
+function md5(buffer){
+  return new Promise(resolve=>{
+    const bytes=new Uint8Array(buffer);
+    function rotateLeft(n,s){return(n<<s)|(n>>>(32-s));}
+    function toHex(n){let s='';for(let i=0;i<4;i++){s+=((n>>(i*8))&0xFF).toString(16).padStart(2,'0');}return s;}
+    
+    const msgLen=bytes.length;
+    const withOnePad=new Uint8Array(Math.ceil((msgLen+9)/64)*64);
+    withOnePad.set(bytes);
+    withOnePad[msgLen]=0x80;
+    const bitLen=msgLen*8;
+    for(let i=0;i<8;i++)withOnePad[withOnePad.length-8+i]=(bitLen/(0x100**i))&0xFF;
+
+    let a=0x67452301,b=0xefcdab89,c=0x98badcfe,d=0x10325476;
+    const K=[];for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296);
+    const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+
+    for(let chunk=0;chunk<withOnePad.length;chunk+=64){
+      const M=[];
+      for(let i=0;i<16;i++){
+        M[i]=withOnePad[chunk+i*4]|(withOnePad[chunk+i*4+1]<<8)|(withOnePad[chunk+i*4+2]<<16)|(withOnePad[chunk+i*4+3]<<24);
+      }
+      let[A,B,C,D]=[a,b,c,d];
+      for(let i=0;i<64;i++){
+        let F,g;
+        if(i<16){F=(B&C)|(~B&D);g=i;}
+        else if(i<32){F=(D&B)|(~D&C);g=(5*i+1)%16;}
+        else if(i<48){F=B^C^D;g=(3*i+5)%16;}
+        else{F=C^(B|~D);g=(7*i)%16;}
+        F=(F+A+K[i]+M[g])|0;
+        A=D;D=C;C=B;
+        B=(B+rotateLeft(F,S[i]))|0;
+      }
+      a=(a+A)|0;b=(b+B)|0;c=(c+C)|0;d=(d+D)|0;
+    }
+    resolve([a,b,c,d].map(toHex).join(''));
+  });
+}
+</script>
+</body>
+</html>

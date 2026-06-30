@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Headers Checker | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--yellow:#ffcc00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:860px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--green)}
+.soc-note{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-left:3px solid var(--green);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--green)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.search-row{display:flex;gap:10px;flex-wrap:wrap}
+input{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:12px 24px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:var(--cyan);color:#000;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.score-card{display:none;text-align:center;padding:24px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;margin-bottom:16px}
+.score-circle{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;border:4px solid}
+.headers-list{display:none}
+.header-item{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}
+.header-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.header-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--t0)}
+.header-status{font-size:11px;font-weight:700;margin-left:8px}
+.header-status.present{color:var(--green)}
+.header-status.missing{color:var(--red)}
+.header-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-top:4px;word-break:break-all}
+.header-desc{font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5}
+.loading{text-align:center;padding:30px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.error-box{background:rgba(255,34,68,.06);border:1px solid rgba(255,34,68,.2);border-radius:8px;padding:16px;color:var(--red);font-size:13px;font-family:'JetBrains Mono',monospace;margin-top:14px;display:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">SECURITY HEADERS CHECKER</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> HTTP guvenlik header'lari XSS, clickjacking, MIME sniffing gibi saldirilara karsi tarayici seviyesinde koruma saglar. CSP (Content-Security-Policy) ve HSTS eksikligi en yaygin bulgulardir. OWASP Secure Headers Project standardini referans alir.
+  </div>
+
+  <div class="card">
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Ornek:</span>
+      <button class="ex-btn" onclick="setUrl('github.com')">github.com</button>
+      <button class="ex-btn" onclick="setUrl('google.com')">google.com</button>
+      <button class="ex-btn" onclick="setUrl('cloudflare.com')">cloudflare.com</button>
+    </div>
+    <div class="search-row">
+      <input id="url-input" placeholder="example.com veya https://example.com" onkeydown="if(event.key==='Enter')checkHeaders()">
+      <button class="btn" onclick="checkHeaders()">Tara</button>
+    </div>
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <div id="loading" style="display:none" class="loading">Header'lar kontrol ediliyor...</div>
+  <div class="score-card" id="score-card"></div>
+  <div class="headers-list" id="headers-list"></div>
+</div>
+
+<script>
+function setUrl(u){document.getElementById('url-input').value=u;checkHeaders();}
+
+const SECURITY_HEADERS = [
+  {key:'strict-transport-security',name:'Strict-Transport-Security (HSTS)',weight:20,desc:'Tarayicinin HTTPS\'i zorunlu kilmasini saglar, SSL stripping saldirilarini onler.'},
+  {key:'content-security-policy',name:'Content-Security-Policy (CSP)',weight:25,desc:'XSS ve veri enjeksiyon saldirilarina karsi en guclu koruma katmani.'},
+  {key:'x-frame-options',name:'X-Frame-Options',weight:15,desc:'Clickjacking saldirilarini onlemek icin iframe icine yerlestirmeyi kisitlar.'},
+  {key:'x-content-type-options',name:'X-Content-Type-Options',weight:10,desc:'MIME-type sniffing saldirilarini onler. Genelde "nosniff" degeri kullanilir.'},
+  {key:'referrer-policy',name:'Referrer-Policy',weight:10,desc:'Referrer bilgisinin baska sitelere ne kadar paylasilacagini kontrol eder.'},
+  {key:'permissions-policy',name:'Permissions-Policy',weight:10,desc:'Kamera, mikrofon, konum gibi tarayici API erisimlerini kisitlar.'},
+  {key:'x-xss-protection',name:'X-XSS-Protection',weight:5,desc:'Eski tarayicilarda XSS filtreleme (modern tarayicilarda deprecated).'},
+  {key:'cross-origin-opener-policy',name:'Cross-Origin-Opener-Policy',weight:5,desc:'Spectre tarzi side-channel saldirilara karsi izolasyon saglar.'},
+];
+
+async function checkHeaders(){
+  let url=document.getElementById('url-input').value.trim();
+  if(!url)return;
+  if(!url.startsWith('http'))url='https://'+url;
+  
+  document.getElementById('loading').style.display='block';
+  document.getElementById('score-card').style.display='none';
+  document.getElementById('headers-list').style.display='none';
+  document.getElementById('error-box').style.display='none';
+
+  try{
+    // CORS proxy kullanarak header bilgisi al
+    const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res=await fetch(proxyUrl);
+    const data=await res.json();
+    
+    // allorigins header bilgisini dondurmuyor, bu yuzden alternatif: securityheaders.com benzeri yaklasim
+    // Direkt fetch deneyelim (CORS olabilir ama bazi siteler izin verir)
+    let headers={};
+    try{
+      const directRes=await fetch(url,{mode:'cors'});
+      directRes.headers.forEach((v,k)=>headers[k.toLowerCase()]=v);
+    }catch(corsErr){
+      // CORS engellenirse, no-cors ile en azindan erisilebilirligi kontrol et
+      throw new Error('CORS_BLOCKED');
+    }
+    
+    renderResults(headers,url);
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error-box').style.display='block';
+    document.getElementById('error-box').innerHTML=`⚠ Tarayicidan dogrudan header okuma CORS politikasi nedeniyle kisitli.<br><br>
+      <strong>Manuel kontrol icin terminal komutu:</strong><br>
+      <code style="display:block;margin-top:8px;padding:10px;background:var(--bg);border-radius:6px">curl -I ${url}</code>
+      <br><strong>Veya online araç:</strong> <a href="https://securityheaders.com/?q=${encodeURIComponent(url)}" target="_blank" style="color:var(--cyan)">securityheaders.com →</a>`;
+  }
+}
+
+function renderResults(headers,url){
+  document.getElementById('loading').style.display='none';
+  
+  let totalScore=0,maxScore=0;
+  const results=SECURITY_HEADERS.map(h=>{
+    maxScore+=h.weight;
+    const present=headers[h.key]!==undefined;
+    if(present)totalScore+=h.weight;
+    return{...h,present,value:headers[h.key]||null};
+  });
+  
+  const pct=Math.round((totalScore/maxScore)*100);
+  let grade,color;
+  if(pct>=90){grade='A+';color='var(--green)';}
+  else if(pct>=75){grade='A';color='var(--green)';}
+  else if(pct>=60){grade='B';color='var(--yellow)';}
+  else if(pct>=40){grade='C';color='var(--orange)';}
+  else{grade='F';color='var(--red)';}
+  
+  const sc=document.getElementById('score-card');
+  sc.innerHTML=`
+    <div class="score-circle" style="border-color:${color};color:${color}">${grade}</div>
+    <div style="font-size:18px;font-weight:700;color:var(--t0)">${pct}/100 Puan</div>
+    <div style="font-size:13px;color:var(--t2);margin-top:4px">${url}</div>`;
+  sc.style.display='block';
+  
+  const hl=document.getElementById('headers-list');
+  hl.innerHTML=results.map(h=>`
+    <div class="header-item">
+      <span class="header-icon">${h.present?'✅':'❌'}</span>
+      <div style="flex:1">
+        <span class="header-name">${h.name}</span>
+        <span class="header-status ${h.present?'present':'missing'}">${h.present?'MEVCUT':'EKSIK'}</span>
+        ${h.value?`<div class="header-val">${h.value}</div>`:''}
+        <div class="header-desc">${h.desc}</div>
+      </div>
+    </div>`).join('');
+  hl.style.display='block';
+}
+</script>
+</body>
+</html>
