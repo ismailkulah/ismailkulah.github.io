@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal Log Parser | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--bg3:#111c30;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--yellow:#ffcc00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1);--border2:rgba(0,240,255,.2)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:20px 16px}
+.container{max-width:1100px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--green)}
+.privacy-banner{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.privacy-icon{font-size:24px;flex-shrink:0}
+.privacy-text{font-size:13px;color:var(--green);font-weight:600}
+.privacy-sub{font-size:11px;color:var(--t2);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:20px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+
+.format-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fmt-btn{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--t2);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;font-weight:600}
+.fmt-btn:hover{border-color:var(--border2);color:var(--t1)}
+.fmt-btn.active{background:rgba(0,240,255,.1);border-color:var(--cyan);color:var(--cyan)}
+.fmt-icon{font-size:14px}
+
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;resize:vertical;min-height:140px;outline:none;transition:border-color .2s;line-height:1.7}
+textarea:focus{border-color:var(--cyan)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{border:none;border-radius:8px;padding:11px 24px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn-sm{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.btn-sm:hover{color:var(--cyan);border-color:var(--cyan)}
+
+.detected-banner{display:none;align-items:center;gap:10px;background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px}
+.detected-banner.show{display:flex}
+.detected-icon{font-size:16px}
+.detected-fmt{color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+.results-wrap{display:none}
+.summary-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.sum-stat{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.sum-val{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--cyan)}
+.sum-label{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+.entries-list{display:flex;flex-direction:column;gap:10px}
+.entry-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.entry-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);cursor:pointer}
+.entry-num{font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.entry-summary{font-size:12px;color:var(--t1);flex:1;margin:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-sev{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.sev-info{background:rgba(0,240,255,.1);color:var(--cyan);border:1px solid rgba(0,240,255,.3)}
+.sev-warn{background:rgba(255,204,0,.1);color:var(--yellow);border:1px solid rgba(255,204,0,.3)}
+.sev-danger{background:rgba(255,34,68,.1);color:var(--red);border:1px solid rgba(255,34,68,.3)}
+.entry-body{padding:14px 16px;display:none}
+.entry-body.open{display:block}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.field{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.field-key{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-family:'JetBrains Mono',monospace}
+.field-val{font-size:12px;color:var(--t0);font-weight:500;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.field-val.highlight-ip{color:var(--cyan)}
+.field-val.highlight-status-err{color:var(--red)}
+.field-val.highlight-status-ok{color:var(--green)}
+.field-val.highlight-method{color:var(--purple)}
+.raw-toggle{margin-top:10px;font-size:11px;color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.raw-toggle:hover{color:var(--cyan)}
+.raw-line{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2);word-break:break-all;display:none}
+.raw-line.show{display:block}
+
+.export-bar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:14px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:40px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">UNIVERSAL LOG PARSER</div>
+
+  <div class="privacy-banner">
+    <span class="privacy-icon">🔒</span>
+    <div>
+      <div class="privacy-text">100% Yerel İşlem — Veri Hiçbir Yere Gönderilmez</div>
+      <div class="privacy-sub">Tüm parsing işlemi tarayıcınızda (JavaScript) gerçekleşir. Network sekmesini açıp doğrulayabilirsiniz. Sayfa yenilendiğinde veriler kalıcı olarak silinir.</div>
+    </div>
+  </div>
+
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> IIS, Apache, Nginx, Windows Event Log, Syslog, Cisco ASA/Firewall, ModSecurity WAF, AWS CloudTrail ve generic formatları otomatik tanır. Source/Dest IP, URI, Status Code, User-Agent, Event ID gibi alanları çıkarır ve okunabilir kartlara dönüştürür.
+  </div>
+
+  <div class="format-selector">
+    <div class="fmt-btn active" data-fmt="auto" onclick="selectFormat('auto',this)"><span class="fmt-icon">🤖</span>Otomatik Algıla</div>
+    <div class="fmt-btn" data-fmt="iis" onclick="selectFormat('iis',this)"><span class="fmt-icon">🪟</span>IIS (W3C)</div>
+    <div class="fmt-btn" data-fmt="apache" onclick="selectFormat('apache',this)"><span class="fmt-icon">🪶</span>Apache/Nginx</div>
+    <div class="fmt-btn" data-fmt="winevent" onclick="selectFormat('winevent',this)"><span class="fmt-icon">🛡️</span>Windows Event</div>
+    <div class="fmt-btn" data-fmt="syslog" onclick="selectFormat('syslog',this)"><span class="fmt-icon">📡</span>Syslog/SSH</div>
+    <div class="fmt-btn" data-fmt="firewall" onclick="selectFormat('firewall',this)"><span class="fmt-icon">🔥</span>Firewall (Cisco)</div>
+    <div class="fmt-btn" data-fmt="waf" onclick="selectFormat('waf',this)"><span class="fmt-icon">🛑</span>WAF (ModSecurity)</div>
+  </div>
+
+  <div class="card">
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Örnek log:</span>
+      <button class="ex-btn" onclick="loadExample('iis')">IIS Log</button>
+      <button class="ex-btn" onclick="loadExample('apache')">Apache Log</button>
+      <button class="ex-btn" onclick="loadExample('winevent')">Win Event (4625)</button>
+      <button class="ex-btn" onclick="loadExample('syslog')">SSH Syslog</button>
+      <button class="ex-btn" onclick="loadExample('firewall')">Cisco ASA</button>
+      <button class="ex-btn" onclick="loadExample('waf')">ModSecurity WAF</button>
+    </div>
+    <textarea id="log-input" placeholder="Herhangi bir kaynaktan log yapıştır: IIS, Apache, Nginx, Windows Event Log, Syslog, Firewall, WAF...
+
+Format otomatik algılanır."></textarea>
+    <div class="btn-row">
+      <button class="btn" onclick="parseLog()">📊 Parse Et</button>
+      <button class="btn-sm" onclick="clearAll()">Temizle</button>
+      <button class="btn-sm" onclick="document.getElementById('log-input').focus();navigator.clipboard.readText().then(t=>{document.getElementById('log-input').value=t})">📋 Panodan Yapıştır</button>
+    </div>
+  </div>
+
+  <div class="detected-banner" id="detected-banner">
+    <span class="detected-icon">✓</span>
+    <span>Algılanan format: <span class="detected-fmt" id="detected-fmt-name"></span></span>
+  </div>
+
+  <div class="results-wrap" id="results-wrap">
+    <div class="summary-stats" id="summary-stats"></div>
+    <div class="export-bar">
+      <button class="btn-sm" onclick="exportJSON()">📥 JSON İndir</button>
+      <button class="btn-sm" onclick="exportCSV()">📥 CSV İndir</button>
+      <button class="btn-sm" onclick="copyAllParsed()">📋 Tümünü Kopyala</button>
+    </div>
+    <div class="entries-list" id="entries-list"></div>
+  </div>
+</div>
+
+<script>
+let selectedFormat='auto';
+let parsedEntries=[];
+
+function selectFormat(fmt,btn){
+  selectedFormat=fmt;
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+const examples={
+iis:`2026-06-29 10:15:32 192.168.1.50 GET /admin/login.aspx - 443 - 203.0.113.42 Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64) - 200 0 0 124
+2026-06-29 10:15:35 192.168.1.50 POST /api/users - 443 - 203.0.113.42 Mozilla/5.0 - 401 0 0 89
+2026-06-29 10:15:40 192.168.1.50 GET /etc/passwd - 443 - 45.142.122.18 curl/7.68.0 - 404 0 2 45
+2026-06-29 10:16:02 192.168.1.50 GET /index.html - 443 - 198.51.100.7 Mozilla/5.0 - 200 0 0 156`,
+apache:`203.0.113.42 - - [29/Jun/2026:10:15:32 +0300] "GET /admin/login.php HTTP/1.1" 404 512 "-" "Mozilla/5.0"
+198.51.100.7 - - [29/Jun/2026:10:15:35 +0300] "POST /wp-login.php HTTP/1.1" 200 1024 "-" "curl/7.68.0"
+45.142.122.18 - - [29/Jun/2026:10:16:00 +0300] "GET /../../etc/passwd HTTP/1.1" 403 256 "-" "sqlmap/1.5"
+192.168.1.105 - - [29/Jun/2026:10:16:15 +0300] "GET /api/products HTTP/1.1" 200 4096 "-" "Mozilla/5.0"`,
+winevent:`Log Name:      Security
+Source:        Microsoft-Windows-Security-Auditing
+Event ID:      4625
+Task Category: Logon
+Level:         Information
+Keywords:      Audit Failure
+User:          N/A
+Computer:      DC01.corp.local
+Description:
+An account failed to log on.
+
+Subject:
+	Security ID:		S-1-0-0
+	Account Name:		-
+	Account Domain:		-
+
+Logon Type:			3
+
+Account For Which Logon Failed:
+	Security ID:		S-1-0-0
+	Account Name:		administrator
+	Account Domain:		CORP
+
+Failure Information:
+	Failure Reason:		Unknown user name or bad password
+	Status:			0xC000006D
+	Sub Status:		0xC000006A
+
+Network Information:
+	Workstation Name:	WORKSTATION-42
+	Source Network Address:	203.0.113.42
+	Source Port:		51234`,
+syslog:`Jun 29 10:15:01 server sshd[1234]: Failed password for root from 203.0.113.42 port 51234 ssh2
+Jun 29 10:15:03 server sshd[1234]: Failed password for invalid user admin from 203.0.113.42 port 51235 ssh2
+Jun 29 10:15:08 server sshd[1234]: Failed password for root from 203.0.113.42 port 51236 ssh2
+Jun 29 10:16:00 server sshd[1234]: Accepted publickey for ismail from 192.168.1.50 port 41234 ssh2
+Jun 29 10:18:45 server sudo: ismail : TTY=pts/0 ; PWD=/home/ismail ; USER=root ; COMMAND=/bin/bash`,
+firewall:`%ASA-4-106023: Deny tcp src outside:203.0.113.42/51234 dst inside:192.168.1.50/443 by access-group "OUTSIDE_IN" [0x0, 0x0]
+%ASA-6-302013: Built inbound TCP connection 123456 for outside:198.51.100.7/41234 (198.51.100.7/41234) to inside:192.168.1.50/443 (192.168.1.50/443)
+%ASA-4-106023: Deny udp src outside:45.142.122.18/53421 dst inside:192.168.1.10/53 by access-group "OUTSIDE_IN" [0x0, 0x0]
+%ASA-6-302014: Teardown TCP connection 123456 for outside:198.51.100.7/41234 to inside:192.168.1.50/443 duration 0:05:23 bytes 4521`,
+waf:`ModSecurity: Warning. Pattern match "(?i:union\\s+select)" at ARGS:id. [file "/etc/modsecurity/rules/sqli.conf"] [line "45"] [id "942100"] [rev "1"] [msg "SQL Injection Attack Detected"] [severity "CRITICAL"] [hostname "192.168.1.50"] [uri "/api/products?id=1' UNION SELECT * FROM users--"] [unique_id "abc123"] client: 203.0.113.42
+ModSecurity: Warning. Pattern match "<script" at ARGS:comment. [file "/etc/modsecurity/rules/xss.conf"] [line "23"] [id "941100"] [msg "XSS Attack Detected"] [severity "CRITICAL"] [hostname "192.168.1.50"] [uri "/comment?text=<script>alert(1)</script>"] client: 45.142.122.18`,
+};
+
+function loadExample(fmt){
+  document.getElementById('log-input').value=examples[fmt];
+  selectFormat(fmt,document.querySelector(`[data-fmt="${fmt}"]`));
+  parseLog();
+}
+
+function clearAll(){
+  document.getElementById('log-input').value='';
+  document.getElementById('results-wrap').style.display='none';
+  document.getElementById('detected-banner').classList.remove('show');
+  parsedEntries=[];
+}
+
+// ============ FORMAT DETECTION ============
+function detectFormat(text){
+  const sample=text.trim();
+  if(/%ASA-\d+-\d+/.test(sample))return'firewall';
+  if(/ModSecurity:/i.test(sample))return'waf';
+  if(/Log Name:|Event ID:|Microsoft-Windows-Security-Auditing/i.test(sample))return'winevent';
+  if(/sshd\[\d+\]|sudo:|systemd\[/i.test(sample))return'syslog';
+  if(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+\S+\s+(GET|POST|PUT|DELETE)/m.test(sample))return'iis';
+  if(/^\S+\s+\S+\s+\S+\s+\[.+\]\s+"(GET|POST|PUT|DELETE)/m.test(sample))return'apache';
+  return'generic';
+}
+
+// ============ PARSERS ============
+function parseIIS(line){
+  // 2026-06-29 10:15:32 192.168.1.50 GET /admin/login.aspx - 443 - 203.0.113.42 Mozilla/5.0... - 200 0 0 124
+  const parts=line.trim().split(/\s+/);
+  if(parts.length<13)return null;
+  return{
+    timestamp:`${parts[0]} ${parts[1]}`,
+    destIP:parts[2],
+    method:parts[3],
+    uri:parts[4],
+    query:parts[5]!=='-'?parts[5]:null,
+    destPort:parts[6],
+    username:parts[7]!=='-'?parts[7]:null,
+    sourceIP:parts[8],
+    userAgent:decodeURIComponent((parts[9]||'').replace(/\+/g,' ')),
+    referer:parts[10]!=='-'?parts[10]:null,
+    statusCode:parts[11],
+    subStatus:parts[12],
+    win32Status:parts[13],
+    timeTaken:parts[14],
+  };
+}
+
+function parseApache(line){
+  // 203.0.113.42 - - [29/Jun/2026:10:15:32 +0300] "GET /path HTTP/1.1" 404 512 "-" "UA"
+  const re=/^(\S+)\s+\S+\s+(\S+)\s+\[([^\]]+)\]\s+"(\S+)\s+(\S+)\s+([^"]+)"\s+(\d+)\s+(\S+)(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?/;
+  const m=line.match(re);
+  if(!m)return null;
+  return{
+    sourceIP:m[1],
+    username:m[2]!=='-'?m[2]:null,
+    timestamp:m[3],
+    method:m[4],
+    uri:m[5],
+    protocol:m[6],
+    statusCode:m[7],
+    bytesSent:m[8],
+    referer:m[9]&&m[9]!=='-'?m[9]:null,
+    userAgent:m[10]||null,
+  };
+}
+
+function parseWinEvent(text){
+  // Multi-line format
+  const get=(re)=>{const m=text.match(re);return m?m[1].trim():null;};
+  return{
+    logName:get(/Log Name:\s*(.+)/),
+    source:get(/Source:\s*(.+)/),
+    eventID:get(/Event ID:\s*(\d+)/),
+    taskCategory:get(/Task Category:\s*(.+)/),
+    level:get(/Level:\s*(.+)/),
+    keywords:get(/Keywords:\s*(.+)/),
+    computer:get(/Computer:\s*(.+)/),
+    accountName:get(/Account Name:\s*(\S+)/),
+    accountDomain:get(/Account Domain:\s*(\S+)/),
+    logonType:get(/Logon Type:\s*(\d+)/),
+    failureReason:get(/Failure Reason:\s*(.+)/),
+    status:get(/Status:\s*(\S+)/),
+    subStatus:get(/Sub Status:\s*(\S+)/),
+    sourceIP:get(/Source Network Address:\s*(\S+)/),
+    sourcePort:get(/Source Port:\s*(\d+)/),
+    workstation:get(/Workstation Name:\s*(\S+)/),
+  };
+}
+
+function parseSyslogLine(line){
+  // Jun 29 10:15:01 server sshd[1234]: Failed password for root from 203.0.113.42 port 51234 ssh2
+  const tsMatch=line.match(/^(\w+\s+\d+\s+\d+:\d+:\d+)/);
+  const hostMatch=line.match(/^\S+\s+\S+\s+(\S+)\s+/);
+  const procMatch=line.match(/(\w+)\[(\d+)\]:/);
+  
+  let action=null,user=null,sourceIP=null,port=null,authMethod=null;
+  
+  if(/Failed password/i.test(line)){
+    action='AUTH_FAILED';
+    const m=line.match(/Failed password for (?:invalid user )?(\S+) from ([\d.]+) port (\d+)/);
+    if(m){user=m[1];sourceIP=m[2];port=m[3];}
+  }else if(/Accepted/i.test(line)){
+    action='AUTH_SUCCESS';
+    const m=line.match(/Accepted (\S+) for (\S+) from ([\d.]+) port (\d+)/);
+    if(m){authMethod=m[1];user=m[2];sourceIP=m[3];port=m[4];}
+  }else if(/sudo:/i.test(line)){
+    action='SUDO_COMMAND';
+    const m=line.match(/sudo:\s+(\S+)\s+:.*COMMAND=(.+)/);
+    if(m){user=m[1];}
+  }
+
+  return{
+    timestamp:tsMatch?tsMatch[1]:null,
+    host:hostMatch?hostMatch[1]:null,
+    process:procMatch?procMatch[1]:null,
+    pid:procMatch?procMatch[2]:null,
+    action,
+    username:user,
+    sourceIP,
+    sourcePort:port,
+    authMethod,
+    rawMessage:line.split(':').slice(2).join(':').trim(),
+  };
+}
+
+function parseFirewall(line){
+  // %ASA-4-106023: Deny tcp src outside:203.0.113.42/51234 dst inside:192.168.1.50/443 by access-group "OUTSIDE_IN"
+  const severityMatch=line.match(/%ASA-(\d)-(\d+)/);
+  const actionMatch=line.match(/(Deny|Built|Teardown|Permit)/i);
+  const protoMatch=line.match(/\b(tcp|udp|icmp)\b/i);
+  const srcMatch=line.match(/src\s+\S+:([0-9.]+)\/(\d+)|outside:([0-9.]+)\/(\d+)/);
+  const dstMatch=line.match(/dst\s+\S+:([0-9.]+)\/(\d+)|inside:([0-9.]+)\/(\d+)/g);
+  
+  const allIPs=line.match(/\b(?:\d{1,3}\.){3}\d{1,3}\/\d+\b/g)||[];
+  
+  return{
+    severity:severityMatch?severityMatch[1]:null,
+    messageID:severityMatch?`ASA-${severityMatch[1]}-${severityMatch[2]}`:null,
+    action:actionMatch?actionMatch[1].toUpperCase():null,
+    protocol:protoMatch?protoMatch[1].toUpperCase():null,
+    sourceIPPort:allIPs[0]||null,
+    destIPPort:allIPs[1]||null,
+    accessGroup:(line.match(/access-group\s+"([^"]+)"/)||[])[1]||null,
+    duration:(line.match(/duration\s+([\d:]+)/)||[])[1]||null,
+    bytes:(line.match(/bytes\s+(\d+)/)||[])[1]||null,
+  };
+}
+
+function parseWAF(line){
+  const get=(re)=>{const m=line.match(re);return m?m[1]:null;};
+  return{
+    ruleFile:get(/\[file "([^"]+)"\]/),
+    ruleLine:get(/\[line "([^"]+)"\]/),
+    ruleID:get(/\[id "([^"]+)"\]/),
+    message:get(/\[msg "([^"]+)"\]/),
+    severity:get(/\[severity "([^"]+)"\]/),
+    hostname:get(/\[hostname "([^"]+)"\]/),
+    uri:get(/\[uri "([^"]+)"\]/),
+    uniqueID:get(/\[unique_id "([^"]+)"\]/),
+    sourceIP:get(/client:\s*([\d.]+)/),
+    pattern:get(/Pattern match "([^"]+)"/),
+  };
+}
+
+function parseGeneric(line){
+  const ips=line.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)||[];
+  const status=line.match(/\b[1-5]\d{2}\b/);
+  const method=line.match(/\b(GET|POST|PUT|DELETE|PATCH)\b/);
+  const uri=line.match(/\s(\/[^\s"]*)/);
+  const ts=line.match(/\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}|\w{3}\s+\d+\s+\d{2}:\d{2}:\d{2}/);
+  return{
+    timestamp:ts?ts[0]:null,
+    sourceIP:ips[0]||null,
+    destIP:ips[1]||null,
+    method:method?method[1]:null,
+    uri:uri?uri[1]:null,
+    statusCode:status?status[0]:null,
+    rawLine:line,
+  };
+}
+
+// ============ MAIN PARSE ============
+function parseLog(){
+  const text=document.getElementById('log-input').value.trim();
+  if(!text){return;}
+
+  let format=selectedFormat;
+  if(format==='auto')format=detectFormat(text);
+
+  const fmtNames={iis:'IIS (W3C Extended)',apache:'Apache/Nginx Access Log',winevent:'Windows Event Log',syslog:'Syslog / SSH Auth',firewall:'Cisco ASA Firewall',waf:'ModSecurity WAF',generic:'Generic / Otomatik'};
+  document.getElementById('detected-fmt-name').textContent=fmtNames[format]||format;
+  document.getElementById('detected-banner').classList.add('show');
+
+  parsedEntries=[];
+  let lines=[];
+
+  if(format==='winevent'){
+    // Tek blok olarak parse et
+    const parsed=parseWinEvent(text);
+    parsedEntries=[{raw:text,parsed,format}];
+  }else{
+    lines=text.split('\n').filter(l=>l.trim());
+    lines.forEach(line=>{
+      let parsed=null;
+      if(format==='iis')parsed=parseIIS(line);
+      else if(format==='apache')parsed=parseApache(line);
+      else if(format==='syslog')parsed=parseSyslogLine(line);
+      else if(format==='firewall')parsed=parseFirewall(line);
+      else if(format==='waf')parsed=parseWAF(line);
+      else parsed=parseGeneric(line);
+      
+      if(parsed)parsedEntries.push({raw:line,parsed,format});
+    });
+  }
+
+  renderResults();
+}
+
+function getSeverity(entry){
+  const p=entry.parsed;
+  if(p.statusCode&&parseInt(p.statusCode)>=500)return'danger';
+  if(p.statusCode&&parseInt(p.statusCode)>=400)return'warn';
+  if(p.action==='AUTH_FAILED'||p.action==='Deny')return'warn';
+  if(p.severity&&(p.severity==='CRITICAL'||p.severity==='1'||p.severity==='4'))return'danger';
+  if(p.uri&&/union\s+select|<script|\.\.\//i.test(p.uri))return'danger';
+  return'info';
+}
+
+function getSummary(entry){
+  const p=entry.parsed;
+  const parts=[];
+  if(p.sourceIP)parts.push(`Src: ${p.sourceIP}`);
+  if(p.destIP)parts.push(`Dst: ${p.destIP}`);
+  if(p.method)parts.push(p.method);
+  if(p.uri)parts.push(p.uri);
+  if(p.statusCode)parts.push(`[${p.statusCode}]`);
+  if(p.action)parts.push(p.action);
+  if(p.username)parts.push(`user:${p.username}`);
+  if(p.eventID)parts.push(`EventID:${p.eventID}`);
+  if(p.ruleID)parts.push(`Rule:${p.ruleID}`);
+  return parts.join(' • ')||'Parse edildi';
+}
+
+function renderResults(){
+  if(parsedEntries.length===0){
+    document.getElementById('results-wrap').style.display='none';
+    return;
+  }
+
+  // Summary stats
+  const uniqueSrcIPs=new Set(parsedEntries.map(e=>e.parsed.sourceIP).filter(Boolean));
+  const uniqueDstIPs=new Set(parsedEntries.map(e=>e.parsed.destIP).filter(Boolean));
+  const errors=parsedEntries.filter(e=>getSeverity(e)==='danger').length;
+  const warnings=parsedEntries.filter(e=>getSeverity(e)==='warn').length;
+
+  document.getElementById('summary-stats').innerHTML=`
+    <div class="sum-stat"><div class="sum-val">${parsedEntries.length}</div><div class="sum-label">Toplam Satır</div></div>
+    <div class="sum-stat"><div class="sum-val" style="color:var(--cyan)">${uniqueSrcIPs.size}</div><div class="sum-label">Unique Source IP</div></div>
+    <div class="sum-stat"><div class="sum-val" style="color:var(--purple)">${uniqueDstIPs.size}</div><div class="sum-label">Unique Dest IP</div></div>
+    <div class="sum-stat"><div class="sum-val" style="color:var(--red)">${errors}</div><div class="sum-label">Kritik/Hata</div></div>
+    <div class="sum-stat"><div class="sum-val" style="color:var(--yellow)">${warnings}</div><div class="sum-label">Uyarı</div></div>`;
+
+  document.getElementById('entries-list').innerHTML=parsedEntries.map((entry,i)=>{
+    const sev=getSeverity(entry);
+    const sevClass={info:'sev-info',warn:'sev-warn',danger:'sev-danger'}[sev];
+    const sevText={info:'INFO',warn:'WARN',danger:'CRITICAL'}[sev];
+    
+    const fields=Object.entries(entry.parsed).filter(([k,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=>{
+      let cls='';
+      if(/ip$/i.test(k))cls='highlight-ip';
+      else if(k==='statusCode'){cls=parseInt(v)>=400?'highlight-status-err':'highlight-status-ok';}
+      else if(k==='method')cls='highlight-method';
+      return`<div class="field"><div class="field-key">${k}</div><div class="field-val ${cls}">${escHtml(String(v))}</div></div>`;
+    }).join('');
+
+    return`<div class="entry-card">
+      <div class="entry-header" onclick="toggleEntry(${i})">
+        <span class="entry-num">#${i+1}</span>
+        <span class="entry-summary">${escHtml(getSummary(entry))}</span>
+        <span class="entry-sev ${sevClass}">${sevText}</span>
+      </div>
+      <div class="entry-body" id="entry-body-${i}">
+        <div class="field-grid">${fields}</div>
+        <div class="raw-toggle" onclick="toggleRaw(${i})">▸ Ham veriyi göster/gizle</div>
+        <div class="raw-line" id="raw-${i}">${escHtml(entry.raw)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('results-wrap').style.display='block';
+  // İlk birkaçını otomatik aç
+  if(parsedEntries.length<=5){
+    parsedEntries.forEach((_,i)=>toggleEntry(i));
+  }
+}
+
+function toggleEntry(i){
+  document.getElementById(`entry-body-${i}`).classList.toggle('open');
+}
+function toggleRaw(i){
+  document.getElementById(`raw-${i}`).classList.toggle('show');
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function exportJSON(){
+  const data=parsedEntries.map(e=>e.parsed);
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='parsed_logs.json';a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV(){
+  if(parsedEntries.length===0)return;
+  const allKeys=new Set();
+  parsedEntries.forEach(e=>Object.keys(e.parsed).forEach(k=>allKeys.add(k)));
+  const keys=[...allKeys];
+  let csv=keys.join(',')+'\n';
+  parsedEntries.forEach(e=>{
+    csv+=keys.map(k=>{
+      const v=e.parsed[k];
+      return v?`"${String(v).replace(/"/g,'""')}"`:'';
+    }).join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='parsed_logs.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyAllParsed(){
+  const text=JSON.stringify(parsedEntries.map(e=>e.parsed),null,2);
+  navigator.clipboard.writeText(text);
+}
+</script>
+</body>
+</html>
