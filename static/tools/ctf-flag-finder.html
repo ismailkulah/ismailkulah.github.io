@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTF Flag Finder | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:860px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--green)}
+.soc-note{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-left:3px solid var(--green);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--green)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.format-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.fmt-chip{font-size:11px;padding:5px 12px;border-radius:6px;background:var(--bg2);color:var(--t2);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;cursor:pointer}
+.fmt-chip:hover{color:var(--cyan);border-color:var(--cyan)}
+.fmt-chip.active{background:rgba(0,240,255,.1);color:var(--cyan);border-color:var(--cyan)}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:13px;padding:14px;resize:vertical;min-height:160px;outline:none;transition:border-color .2s;line-height:1.7}
+textarea:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:11px 24px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:var(--cyan);color:#000;margin-top:12px}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.flags-found{margin-top:20px}
+.flag-item{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.25);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.flag-text{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);font-weight:700;word-break:break-all}
+.flag-fmt-tag{font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+.copy-flag{font-size:11px;padding:5px 12px;border-radius:6px;background:var(--bg2);color:var(--t2);border:1px solid var(--border);cursor:pointer;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.copy-flag:hover{color:var(--cyan);border-color:var(--cyan)}
+.empty{text-align:center;padding:30px;color:var(--t2);font-family:'JetBrains Mono',monospace;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">CTF FLAG FINDER</div>
+  <div class="soc-note">
+    <strong>CTF NOTU:</strong> Buyuk ciktilar (decode edilmis dosyalar, kaynak kod, binary strings ciktisi) icinde flag formatini manuel aramak yerine otomatik tara. picoCTF{...}, HTB{...}, flag{...} gibi yaygin formatlari tanir, ozel format da ekleyebilirsin.
+  </div>
+
+  <div class="card">
+    <div class="format-grid" id="format-grid"></div>
+    
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Örnek:</span>
+      <button class="ex-btn" onclick="loadExample()">Örnek Metin Yükle</button>
+    </div>
+
+    <textarea id="text-input" placeholder="Tarama yapılacak büyük metni buraya yapıştır (decode çıktısı, strings çıktısı, kaynak kod...)" oninput="findFlags()"></textarea>
+    <button class="btn" onclick="findFlags()">🚩 Flag'leri Bul</button>
+  </div>
+
+  <div class="flags-found" id="flags-found"></div>
+</div>
+
+<script>
+const FORMATS = [
+  {name:'flag{...}',pattern:'flag\\{[^}]+\\}',active:true},
+  {name:'CTF{...}',pattern:'CTF\\{[^}]+\\}',active:true},
+  {name:'picoCTF{...}',pattern:'picoCTF\\{[^}]+\\}',active:true},
+  {name:'HTB{...}',pattern:'HTB\\{[^}]+\\}',active:true},
+  {name:'THM{...}',pattern:'THM\\{[^}]+\\}',active:true},
+  {name:'FLAG{...}',pattern:'FLAG\\{[^}]+\\}',active:true},
+  {name:'key{...}',pattern:'key\\{[^}]+\\}',active:false},
+  {name:'CYBER{...}',pattern:'CYBER\\{[^}]+\\}',active:false},
+  {name:'pwn{...}',pattern:'pwn\\{[^}]+\\}',active:false},
+  {name:'web{...}',pattern:'web\\{[^}]+\\}',active:false},
+  {name:'crypto{...}',pattern:'crypto\\{[^}]+\\}',active:false},
+  {name:'forensics{...}',pattern:'forensics\\{[^}]+\\}',active:false},
+  {name:'Genel {...}',pattern:'[a-zA-Z0-9_]{2,15}\\{[a-zA-Z0-9_\\-!@#$%^&*\\.\\?]{4,}\\}',active:false},
+];
+
+let activeFormats=new Set(FORMATS.filter(f=>f.active).map(f=>f.name));
+
+function renderFormats(){
+  document.getElementById('format-grid').innerHTML=FORMATS.map(f=>
+    `<div class="fmt-chip ${activeFormats.has(f.name)?'active':''}" onclick="toggleFormat('${f.name}')">${f.name}</div>`).join('');
+}
+
+function toggleFormat(name){
+  if(activeFormats.has(name))activeFormats.delete(name);
+  else activeFormats.add(name);
+  renderFormats();
+  findFlags();
+}
+
+function loadExample(){
+  document.getElementById('text-input').value=`Decoding output...
+Some random base64 decoded text here with junk data 0x4A 0x6B
+Found interesting string: picoCTF{d3c0d1ng_15_fun_4ndOrFalse}
+More junk data here...
+Another flag hidden: HTB{n3v3r_g1v3_up_h4ck3r}
+Random binary strings output:
+/bin/bash
+libc.so.6
+flag{this_is_a_test_flag_12345}
+End of output.`;
+  findFlags();
+}
+
+function findFlags(){
+  const text=document.getElementById('text-input').value;
+  const resultDiv=document.getElementById('flags-found');
+  if(!text.trim()){resultDiv.innerHTML='';return;}
+
+  const found=[];
+  const seen=new Set();
+
+  FORMATS.forEach(f=>{
+    if(!activeFormats.has(f.name))return;
+    try{
+      const re=new RegExp(f.pattern,'gi');
+      const matches=text.match(re)||[];
+      matches.forEach(m=>{
+        if(!seen.has(m)){
+          seen.add(m);
+          found.push({text:m,format:f.name});
+        }
+      });
+    }catch(e){}
+  });
+
+  if(found.length===0){
+    resultDiv.innerHTML='<div class="empty">Henüz flag bulunamadı. Metni yapıştır veya farklı format dene.</div>';
+    return;
+  }
+
+  resultDiv.innerHTML=found.map((f,i)=>`
+    <div class="flag-item">
+      <div>
+        <div class="flag-text">${escHtml(f.text)}</div>
+        <div class="flag-fmt-tag">Format: ${f.format}</div>
+      </div>
+      <button class="copy-flag" onclick="navigator.clipboard.writeText('${f.text.replace(/'/g,"\\'")}');this.textContent='Kopyalandı!'">Kopyala</button>
+    </div>`).join('');
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+renderFormats();
+</script>
+</body>
+</html>

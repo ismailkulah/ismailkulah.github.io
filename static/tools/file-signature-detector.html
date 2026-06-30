@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Signature Detector | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:820px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--orange)}
+.soc-note{background:rgba(255,140,0,.05);border:1px solid rgba(255,140,0,.2);border-left:3px solid var(--orange);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--orange)}
+.dropzone{background:var(--bg1);border:2px dashed var(--border);border-radius:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .25s;margin-bottom:20px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--cyan);background:rgba(0,240,255,.03)}
+.dropzone-icon{font-size:36px;margin-bottom:12px}
+.dropzone-text{font-size:14px;color:var(--t1);font-weight:600}
+.dropzone-sub{font-size:11px;color:var(--t2);margin-top:6px}
+#file-input{display:none}
+.result-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;display:none}
+.match-banner{padding:14px 18px;border-radius:10px;margin-bottom:16px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
+.match-yes{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+.match-no{background:rgba(255,34,68,.1);color:var(--red);border:1px solid rgba(255,34,68,.3)}
+.match-unknown{background:rgba(255,204,0,.1);color:#ffcc00;border:1px solid rgba(255,204,0,.3)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.detail-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.detail-key{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.detail-val{font-size:13px;color:var(--t0);font-weight:600;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.hex-dump{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);overflow-x:auto;white-space:pre;line-height:1.6}
+.hex-offset{color:var(--t2)}
+.hex-magic{color:var(--cyan);background:rgba(0,240,255,.1);padding:0 1px}
+.ascii-col{color:var(--purple)}
+.section-label{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px}
+@media(max-width:500px){.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">FILE SIGNATURE DETECTOR</div>
+  <div class="soc-note">
+    <strong>FORENSIC NOTU:</strong> Dosya uzantilari yaniltici olabilir (malware.jpg.exe). Magic number / file signature dosyanin gercek tipini binary header'dan tespit eder. Forensic incelemede uzanti degistirilmis sahte dosyalari yakalamak icin kullanilir. Dosya hicbir yere yuklenmez, sadece ilk birkac byte okunur.
+  </div>
+
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+    <div class="dropzone-icon">🔬</div>
+    <div class="dropzone-text">Dosyayı sürükle veya tıkla</div>
+    <div class="dropzone-sub">Sadece ilk 32 byte okunur, dosya hiçbir yere gönderilmez</div>
+  </div>
+  <input type="file" id="file-input" onchange="handleFile(this.files[0])">
+
+  <div class="result-card" id="result-card"></div>
+</div>
+
+<script>
+const SIGNATURES = [
+  {hex:'FFD8FF',ext:'.jpg/.jpeg',name:'JPEG Image',mime:'image/jpeg'},
+  {hex:'89504E47',ext:'.png',name:'PNG Image',mime:'image/png'},
+  {hex:'47494638',ext:'.gif',name:'GIF Image',mime:'image/gif'},
+  {hex:'25504446',ext:'.pdf',name:'PDF Document',mime:'application/pdf'},
+  {hex:'504B0304',ext:'.zip/.docx/.xlsx/.jar/.apk',name:'ZIP Archive (or Office/Java/Android)',mime:'application/zip'},
+  {hex:'526172211A0700',ext:'.rar',name:'RAR Archive',mime:'application/x-rar'},
+  {hex:'377ABCAF271C',ext:'.7z',name:'7-Zip Archive',mime:'application/x-7z-compressed'},
+  {hex:'4D5A',ext:'.exe/.dll',name:'Windows PE Executable',mime:'application/x-msdownload'},
+  {hex:'7F454C46',ext:'(no ext)',name:'ELF Executable (Linux)',mime:'application/x-elf'},
+  {hex:'CAFEBABE',ext:'.class',name:'Java Class File',mime:'application/java-vm'},
+  {hex:'D0CF11E0A1B11AE1',ext:'.doc/.xls/.ppt',name:'MS Office Legacy (OLE2)',mime:'application/msword'},
+  {hex:'425A68',ext:'.bz2',name:'BZip2 Archive',mime:'application/x-bzip2'},
+  {hex:'1F8B08',ext:'.gz',name:'GZip Archive',mime:'application/gzip'},
+  {hex:'7573746172',ext:'.tar',name:'TAR Archive',mime:'application/x-tar'},
+  {hex:'52494646',ext:'.wav/.avi',name:'RIFF Container (WAV/AVI)',mime:'audio/wav'},
+  {hex:'494433',ext:'.mp3',name:'MP3 Audio (ID3)',mime:'audio/mpeg'},
+  {hex:'000001BA',ext:'.mpg',name:'MPEG Video',mime:'video/mpeg'},
+  {hex:'66747970',ext:'.mp4',name:'MP4 Video',mime:'video/mp4',offset:4},
+  {hex:'3C3F786D6C',ext:'.xml',name:'XML Document',mime:'text/xml'},
+  {hex:'3C68746D6C',ext:'.html',name:'HTML Document',mime:'text/html'},
+  {hex:'53514C697465',ext:'.db/.sqlite',name:'SQLite Database',mime:'application/x-sqlite3'},
+  {hex:'7B5C72746631',ext:'.rtf',name:'Rich Text Format',mime:'application/rtf'},
+  {hex:'4F676753',ext:'.ogg',name:'OGG Container',mime:'audio/ogg'},
+  {hex:'664C6143',ext:'.flac',name:'FLAC Audio',mime:'audio/flac'},
+  {hex:'2321',ext:'(script)',name:'Shebang Script (#!)',mime:'text/x-script'},
+  {hex:'4D5363660000',ext:'.cab',name:'Microsoft Cabinet',mime:'application/vnd.ms-cab-compressed'},
+  {hex:'EDABEEDB',ext:'.rpm',name:'RPM Package',mime:'application/x-rpm'},
+];
+
+const EXT_MIME_MAP = {
+  'jpg':'image/jpeg','jpeg':'image/jpeg','png':'image/png','gif':'image/gif','pdf':'application/pdf',
+  'zip':'application/zip','docx':'application/zip','xlsx':'application/zip','exe':'application/x-msdownload',
+  'mp3':'audio/mpeg','mp4':'video/mp4','txt':'text/plain','html':'text/html','xml':'text/xml',
+};
+
+const dropzone=document.getElementById('dropzone');
+dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.classList.add('dragover');});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop',e=>{
+  e.preventDefault();dropzone.classList.remove('dragover');
+  if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);
+});
+
+function formatBytes(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return(b/1024).toFixed(1)+' KB';
+  return(b/1048576).toFixed(2)+' MB';
+}
+
+async function handleFile(file){
+  if(!file)return;
+  const buffer=await file.slice(0,64).arrayBuffer();
+  const bytes=new Uint8Array(buffer);
+  const hexStr=Array.from(bytes).map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join('');
+
+  let matched=null;
+  for(const sig of SIGNATURES){
+    const offset=(sig.offset||0)*2;
+    if(hexStr.substring(offset,offset+sig.hex.length)===sig.hex){
+      matched=sig;break;
+    }
+  }
+
+  const fileExt=file.name.split('.').pop().toLowerCase();
+  const claimedMime=EXT_MIME_MAP[fileExt]||file.type||'unknown';
+  
+  let mismatch=false;
+  if(matched){
+    const matchedExts=matched.ext.split('/').map(e=>e.replace('.','').replace(/[()]/g,''));
+    mismatch=!matchedExts.some(e=>fileExt.includes(e)||e.includes(fileExt));
+  }
+
+  const hexLines=[];
+  for(let i=0;i<bytes.length;i+=16){
+    const chunk=bytes.slice(i,i+16);
+    const offset=i.toString(16).padStart(8,'0').toUpperCase();
+    const hexPart=Array.from(chunk).map((b,idx)=>{
+      const h=b.toString(16).padStart(2,'0').toUpperCase();
+      return (i+idx<(matched?matched.hex.length/2:4))?`<span class="hex-magic">${h}</span>`:h;
+    }).join(' ');
+    const asciiPart=Array.from(chunk).map(b=>(b>=32&&b<=126)?String.fromCharCode(b):'.').join('');
+    hexLines.push(`<span class="hex-offset">${offset}</span>  ${hexPart.padEnd(48,' ')}  <span class="ascii-col">${asciiPart}</span>`);
+  }
+
+  const rc=document.getElementById('result-card');
+  let bannerHtml,bannerClass;
+  if(matched&&!mismatch){
+    bannerHtml=`✅ Dosya tipi doğrulandı: <strong>${matched.name}</strong>`;
+    bannerClass='match-yes';
+  }else if(matched&&mismatch){
+    bannerHtml=`🚨 UYUMSUZLUK TESPİT EDİLDİ! Dosya uzantısı (.${fileExt}) ile gerçek tip (${matched.name}) eşleşmiyor — şüpheli dosya olabilir!`;
+    bannerClass='match-no';
+  }else{
+    bannerHtml=`⚠️ Bilinen bir dosya imzası tespit edilemedi (.${fileExt} olarak işaretlenmiş)`;
+    bannerClass='match-unknown';
+  }
+
+  rc.innerHTML=`
+    <div class="match-banner ${bannerClass}">${bannerHtml}</div>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-key">Dosya Adı</div><div class="detail-val">${file.name}</div></div>
+      <div class="detail-item"><div class="detail-key">Boyut</div><div class="detail-val">${formatBytes(file.size)}</div></div>
+      <div class="detail-item"><div class="detail-key">Beyan Edilen Uzantı</div><div class="detail-val">.${fileExt}</div></div>
+      <div class="detail-item"><div class="detail-key">Gerçek Tip (Magic Number)</div><div class="detail-val" style="color:${matched?(mismatch?'var(--red)':'var(--green)'):'var(--orange)'}">${matched?matched.name:'Bilinmiyor'}</div></div>
+      <div class="detail-item"><div class="detail-key">MIME Type (Tarayıcı)</div><div class="detail-val">${file.type||'belirtilmemiş'}</div></div>
+      <div class="detail-item"><div class="detail-key">Magic Bytes (Hex)</div><div class="detail-val">${matched?matched.hex:hexStr.substring(0,8)}</div></div>
+    </div>
+    <div class="section-label">Hex Dump (İlk 64 Byte)</div>
+    <div class="hex-dump">${hexLines.join('\n')}</div>`;
+  rc.style.display='block';
+}
+</script>
+</body>
+</html>

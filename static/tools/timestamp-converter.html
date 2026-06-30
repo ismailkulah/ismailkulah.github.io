@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timestamp Converter | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:820px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--purple)}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.now-display{text-align:center;padding:16px;background:var(--bg2);border-radius:10px;margin-bottom:16px}
+.now-val{font-size:28px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace}
+.now-label{font-size:11px;color:var(--t2);margin-top:4px}
+input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px 16px;outline:none;margin-bottom:10px;transition:border-color .2s}
+input:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:10px 22px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:var(--cyan);color:#000}
+.section-label{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.result-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.result-key{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.result-val{font-size:13px;color:var(--green);font-family:'JetBrains Mono',monospace;word-break:break-all}
+.copy-sm{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--bg);color:var(--t2);border:1px solid var(--border);cursor:pointer}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+@media(max-width:500px){.results-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">TIMESTAMP CONVERTER</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> Forensic zaman cizelgesi (timeline) olusturmada farkli sistemler farkli epoch formatlari kullanir: Unix (saniye), Windows FILETIME (100ns, 1601'den), Chrome/WebKit (mikrosaniye, 1601'den). Log korelasyonu icin dogru donusum kritik onem tasir.
+  </div>
+
+  <div class="card">
+    <div class="now-display">
+      <div class="now-val" id="now-unix">—</div>
+      <div class="now-label">Şu anki Unix Timestamp (saniye)</div>
+    </div>
+
+    <div class="examples">
+      <span style="font-size:11px;color:var(--t2);align-self:center">Hızlı:</span>
+      <button class="ex-btn" onclick="setNow()">Şimdi</button>
+      <button class="ex-btn" onclick="setVal('1719648932')">Unix Örnek</button>
+      <button class="ex-btn" onclick="setVal('133645284320000000')">Windows FILETIME Örnek</button>
+      <button class="ex-btn" onclick="setVal('2026-06-29 10:15:32')">ISO Tarih Örnek</button>
+    </div>
+
+    <div class="section-label">Giriş (herhangi bir format yapıştır)</div>
+    <input id="ts-input" placeholder="Unix timestamp, ISO tarih, Windows FILETIME..." oninput="convert()">
+
+    <div class="results-grid" id="results-grid"></div>
+  </div>
+</div>
+
+<script>
+function tick(){
+  document.getElementById('now-unix').textContent=Math.floor(Date.now()/1000);
+}
+setInterval(tick,1000);tick();
+
+function setNow(){document.getElementById('ts-input').value=Math.floor(Date.now()/1000);convert();}
+function setVal(v){document.getElementById('ts-input').value=v;convert();}
+
+function copyVal(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent);
+}
+
+function convert(){
+  const raw=document.getElementById('ts-input').value.trim();
+  const grid=document.getElementById('results-grid');
+  if(!raw){grid.innerHTML='';return;}
+
+  let date=null;
+  let detectedAs='';
+
+  // Unix seconds (10 digit)
+  if(/^\d{10}$/.test(raw)){
+    date=new Date(parseInt(raw)*1000);
+    detectedAs='Unix Timestamp (saniye)';
+  }
+  // Unix milliseconds (13 digit)
+  else if(/^\d{13}$/.test(raw)){
+    date=new Date(parseInt(raw));
+    detectedAs='Unix Timestamp (milisaniye)';
+  }
+  // Windows FILETIME (17-18 digit, 100ns since 1601)
+  else if(/^\d{17,18}$/.test(raw)){
+    const filetimeEpochDiff=11644473600000; // ms between 1601 and 1970
+    const ms=parseInt(raw)/10000-filetimeEpochDiff;
+    date=new Date(ms);
+    detectedAs='Windows FILETIME (100ns, 1601 epoch)';
+  }
+  // Chrome/WebKit timestamp (16 digit, microseconds since 1601)
+  else if(/^\d{16}$/.test(raw)){
+    const webkitEpochDiff=11644473600000000;
+    const ms=(parseInt(raw)-webkitEpochDiff)/1000;
+    date=new Date(ms);
+    detectedAs='Chrome/WebKit Timestamp (mikrosaniye, 1601 epoch)';
+  }
+  // ISO / human readable
+  else{
+    const parsed=new Date(raw);
+    if(!isNaN(parsed.getTime())){
+      date=parsed;
+      detectedAs='ISO / İnsan Okunabilir Tarih';
+    }
+  }
+
+  if(!date||isNaN(date.getTime())){
+    grid.innerHTML='<div class="result-item" style="grid-column:1/-1;color:var(--red)">Tanınamayan format. Unix, FILETIME veya ISO tarih deneyin.</div>';
+    return;
+  }
+
+  const unixSec=Math.floor(date.getTime()/1000);
+  const unixMs=date.getTime();
+  const filetimeEpochDiff=11644473600000;
+  const filetime=Math.round((date.getTime()+filetimeEpochDiff)*10000);
+  const webkitTime=Math.round((date.getTime()+11644473600000)*1000);
+
+  const results=[
+    {key:'Algılanan Format',val:detectedAs,id:'r0'},
+    {key:'UTC (ISO 8601)',val:date.toISOString(),id:'r1'},
+    {key:'Yerel Saat (Tarayıcı TZ)',val:date.toString(),id:'r2'},
+    {key:'Türkiye Saati (UTC+3)',val:new Date(date.getTime()+3*3600000).toISOString().replace('T',' ').replace('Z',' TRT'),id:'r3'},
+    {key:'Unix Timestamp (saniye)',val:unixSec,id:'r4'},
+    {key:'Unix Timestamp (ms)',val:unixMs,id:'r5'},
+    {key:'Windows FILETIME',val:filetime,id:'r6'},
+    {key:'Chrome/WebKit Timestamp',val:webkitTime,id:'r7'},
+    {key:'RFC 2822',val:date.toUTCString(),id:'r8'},
+    {key:'Unix Epoch Gün Sayısı',val:Math.floor(unixSec/86400),id:'r9'},
+  ];
+
+  grid.innerHTML=results.map(r=>`
+    <div class="result-item">
+      <div class="result-key"><span>${r.key}</span><button class="copy-sm" onclick="copyVal('${r.id}')">kopyala</button></div>
+      <div class="result-val" id="${r.id}">${r.val}</div>
+    </div>`).join('');
+}
+
+setNow();
+</script>
+</body>
+</html>

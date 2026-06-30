@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MITRE ATT&CK Lookup | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:24px 16px}
+.container{max-width:1000px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--red)}
+.soc-note{background:rgba(255,34,68,.05);border:1px solid rgba(255,34,68,.2);border-left:3px solid var(--red);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--red)}
+.search-row{display:flex;gap:10px;margin-bottom:20px}
+input{flex:1;background:var(--bg1);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--cyan)}
+.tactics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
+.tactic-chip{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.tactic-chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.tactic-chip.active{background:rgba(0,240,255,.1);border-color:var(--cyan);color:var(--cyan)}
+.techniques-list{display:flex;flex-direction:column;gap:10px}
+.tech-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:18px 20px;cursor:pointer;transition:all .2s}
+.tech-card:hover{border-color:rgba(0,240,255,.3)}
+.tech-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tech-id{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);font-weight:700}
+.tech-tactic-badge{font-size:10px;padding:3px 10px;border-radius:10px;background:rgba(189,0,255,.12);color:var(--purple);border:1px solid rgba(189,0,255,.25)}
+.tech-name{font-size:15px;font-weight:700;color:var(--t0);margin-bottom:6px}
+.tech-desc{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+.tech-detect{font-size:12px;color:var(--green);background:rgba(0,255,136,.06);border-left:2px solid var(--green);padding:8px 12px;border-radius:4px;margin-top:8px}
+.tech-link{display:inline-block;margin-top:10px;font-size:12px;color:var(--cyan);text-decoration:none}
+.tech-link:hover{text-decoration:underline}
+.empty{text-align:center;padding:40px;color:var(--t2);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">MITRE ATT&CK LOOKUP</div>
+  <div class="soc-note">
+    <strong>SOC Analist Notu:</strong> MITRE ATT&CK framework, saldirganlarin kullandigi taktik ve teknikleri standartlastirir. SIEM kurallari yazarken, incident response raporlarinda ve threat hunting'de referans olarak kullanilir. Her teknik icin tespit (detection) onerileri saglar.
+  </div>
+
+  <div class="search-row">
+    <input id="search-input" placeholder="Teknik ara: T1059, PowerShell, Phishing, Lateral Movement..." oninput="filterTechniques()">
+  </div>
+
+  <div class="tactics-grid" id="tactics-grid"></div>
+
+  <div class="techniques-list" id="techniques-list"></div>
+</div>
+
+<script>
+const TACTICS = ['Tümü','Reconnaissance','Initial Access','Execution','Persistence','Privilege Escalation','Defense Evasion','Credential Access','Discovery','Lateral Movement','Collection','Command and Control','Exfiltration','Impact'];
+
+const TECHNIQUES = [
+  {id:'T1566',name:'Phishing',tactic:'Initial Access',desc:'Saldirganlar kullanicilari kotu amacli ek veya link icermeli e-posta ile kandirir.',detect:'E-posta gateway loglarini, SPF/DKIM/DMARC basarisizliklarini ve kullanici tiklama oranlarini izle.',url:'https://attack.mitre.org/techniques/T1566/'},
+  {id:'T1059',name:'Command and Scripting Interpreter',tactic:'Execution',desc:'PowerShell, Bash, Python gibi script dilleri kullanilarak komut calistirma.',detect:'PowerShell Script Block Logging (Event ID 4104), process command-line loglari incele.',url:'https://attack.mitre.org/techniques/T1059/'},
+  {id:'T1547',name:'Boot or Logon Autostart Execution',tactic:'Persistence',desc:'Registry Run keys, Startup folder gibi otomatik calisma noktalarina malware yerlestirme.',detect:'Registry degisikliklerini (Sysmon Event ID 13) ve startup klasor degisikliklerini izle.',url:'https://attack.mitre.org/techniques/T1547/'},
+  {id:'T1055',name:'Process Injection',tactic:'Defense Evasion',desc:'Kotu amacli kodu mesru bir process icine enjekte ederek tespitten kacma.',detect:'CreateRemoteThread, VirtualAllocEx API caglarini ve anormal process davranislarini izle (Sysmon 8,10).',url:'https://attack.mitre.org/techniques/T1055/'},
+  {id:'T1003',name:'OS Credential Dumping',tactic:'Credential Access',desc:'LSASS bellek dump, SAM database erisimi gibi yontemlerle kimlik bilgisi calma.',detect:'LSASS process erisimini (Sysmon Event ID 10), Mimikatz imzalarini izle.',url:'https://attack.mitre.org/techniques/T1003/'},
+  {id:'T1082',name:'System Information Discovery',tactic:'Discovery',desc:'Saldirgan, hedef sistem hakkinda bilgi toplamak icin systeminfo, uname gibi komutlar kullanir.',detect:'Sistem kesif komutlarinin (whoami, systeminfo, ipconfig) ardisik calistirilmasini izle.',url:'https://attack.mitre.org/techniques/T1082/'},
+  {id:'T1021',name:'Remote Services',tactic:'Lateral Movement',desc:'RDP, SSH, SMB gibi servisler kullanilarak ag icinde yanal hareket.',detect:'Anormal RDP/SSH baglantilarini, ayni hesaptan coklu host erisimini izle.',url:'https://attack.mitre.org/techniques/T1021/'},
+  {id:'T1071',name:'Application Layer Protocol',tactic:'Command and Control',desc:'HTTP/HTTPS/DNS gibi protokoller C2 iletisimi icin kotuye kullanilir.',detect:'Beacon pattern\'leri, anormal DNS sorgu hacmini ve sabit interval trafigi izle.',url:'https://attack.mitre.org/techniques/T1071/'},
+  {id:'T1041',name:'Exfiltration Over C2 Channel',tactic:'Exfiltration',desc:'Veri, mevcut C2 kanali uzerinden disari sizdirilir.',detect:'Anormal giden veri hacmini (data exfil), beklenmeyen disa baglanti noktalarini izle.',url:'https://attack.mitre.org/techniques/T1041/'},
+  {id:'T1486',name:'Data Encrypted for Impact',tactic:'Impact',desc:'Ransomware tarafindan dosyalarin sifrelenmesi.',detect:'Toplu dosya degisikligi (entropi artisi), shadow copy silme komutlarini izle (vssadmin delete).',url:'https://attack.mitre.org/techniques/T1486/'},
+  {id:'T1078',name:'Valid Accounts',tactic:'Defense Evasion',desc:'Calinan veya tahmin edilen gecerli hesap bilgileriyle sisteme erisim.',detect:'Anormal saatlerde/lokasyondan giris, impossible travel pattern\'lerini izle.',url:'https://attack.mitre.org/techniques/T1078/'},
+  {id:'T1110',name:'Brute Force',tactic:'Credential Access',desc:'Coklu parola denemesiyle hesap erisimi elde etme.',detect:'Kisa surede coklu basarisiz giris denemelerini (Event ID 4625) izle.',url:'https://attack.mitre.org/techniques/T1110/'},
+  {id:'T1190',name:'Exploit Public-Facing Application',tactic:'Initial Access',desc:'Internete acik uygulamalardaki zafiyetlerin istismar edilmesi.',detect:'WAF loglarini, anormal HTTP request pattern\'lerini ve 4xx/5xx artisini izle.',url:'https://attack.mitre.org/techniques/T1190/'},
+  {id:'T1027',name:'Obfuscated Files or Information',tactic:'Defense Evasion',desc:'Kod veya dosyalarin sifrelenerek/gizlenerek tespitten kacirilmasi.',detect:'Yuksek entropi degerine sahip dosyalari, base64 encoded PowerShell komutlarini izle.',url:'https://attack.mitre.org/techniques/T1027/'},
+  {id:'T1595',name:'Active Scanning',tactic:'Reconnaissance',desc:'Hedef hakkinda bilgi toplamak icin port tarama, zafiyet tarama yapilmasi.',detect:'Tek kaynaktan coklu port/host taramasini (Nmap pattern), IDS/IPS uyarilarini izle.',url:'https://attack.mitre.org/techniques/T1595/'},
+  {id:'T1560',name:'Archive Collected Data',tactic:'Collection',desc:'Sizdirilmadan once toplanan verinin sikistirilmasi/sifrelenmesi.',detect:'Beklenmeyen ZIP/RAR olusturma islemlerini, buyuk dosya arsivleme aktivitesini izle.',url:'https://attack.mitre.org/techniques/T1560/'},
+];
+
+let activeTactic='Tümü';
+
+function renderTactics(){
+  document.getElementById('tactics-grid').innerHTML=TACTICS.map(t=>
+    `<div class="tactic-chip ${t===activeTactic?'active':''}" onclick="selectTactic('${t}')">${t}</div>`).join('');
+}
+
+function selectTactic(t){
+  activeTactic=t;
+  renderTactics();
+  filterTechniques();
+}
+
+function filterTechniques(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  let filtered=TECHNIQUES;
+  if(activeTactic!=='Tümü')filtered=filtered.filter(t=>t.tactic===activeTactic);
+  if(q)filtered=filtered.filter(t=>t.id.toLowerCase().includes(q)||t.name.toLowerCase().includes(q)||t.desc.toLowerCase().includes(q));
+  
+  const list=document.getElementById('techniques-list');
+  if(!filtered.length){list.innerHTML='<div class="empty">Sonuç bulunamadı</div>';return;}
+  
+  list.innerHTML=filtered.map(t=>`
+    <a class="tech-card" href="${t.url}" target="_blank" style="text-decoration:none;display:block">
+      <div class="tech-header">
+        <span class="tech-id">${t.id}</span>
+        <span class="tech-tactic-badge">${t.tactic}</span>
+      </div>
+      <div class="tech-name">${t.name}</div>
+      <div class="tech-desc">${t.desc}</div>
+      <div class="tech-detect">🔍 Tespit: ${t.detect}</div>
+    </a>`).join('');
+}
+
+renderTactics();
+filterTechniques();
+</script>
+</body>
+</html>
