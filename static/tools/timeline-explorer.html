@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Explorer | CyberSec Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--yellow:#ffcc00;--t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--border:rgba(0,240,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;padding:20px 16px}
+.container{max-width:1100px;margin:0 auto}
+.title{font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.title::before{content:'◈';color:var(--green)}
+.subtitle{font-size:12px;color:var(--t2);margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.privacy-banner{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.25);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.privacy-text{font-size:12px;color:var(--green);font-weight:600}
+.soc-note{background:rgba(0,240,255,.05);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--t2);margin-bottom:20px;font-family:'JetBrains Mono',monospace}
+.soc-note strong{color:var(--cyan)}
+
+.tool-tabs{display:flex;gap:0;background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.tool-tab{flex:1;padding:12px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border-right:1px solid var(--border);color:var(--t2)}
+.tool-tab:last-child{border-right:none}
+.tool-tab.active{background:rgba(0,240,255,.08);color:var(--cyan)}
+
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex-btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;font-family:'JetBrains Mono',monospace}
+.ex-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--t0);font-family:'JetBrains Mono',monospace;font-size:12px;padding:14px;resize:vertical;min-height:160px;outline:none;transition:border-color .2s;line-height:1.7}
+textarea:focus{border-color:var(--cyan)}
+.btn{border:none;border-radius:8px;padding:10px 22px;font-size:14px;cursor:pointer;font-weight:700;font-family:'Rajdhani',sans-serif;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000;margin-top:12px}
+.btn-sm{background:var(--bg2);color:var(--t2);border:1px solid var(--border);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;margin-top:12px;margin-left:8px}
+
+.tl-table{background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:16px}
+.tl-head{display:grid;grid-template-columns:170px 100px 1fr 90px;padding:10px 16px;background:var(--bg2);font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.tl-row{display:grid;grid-template-columns:170px 100px 1fr 90px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;font-size:12px}
+.tl-row:last-child{border-bottom:none}
+.tl-ts{font-family:'JetBrains Mono',monospace;color:var(--cyan)}
+.tl-src{font-size:10px;padding:3px 8px;border-radius:8px;background:rgba(189,0,255,.12);color:var(--purple);border:1px solid rgba(189,0,255,.25);width:fit-content;font-family:'JetBrains Mono',monospace}
+.tl-desc{color:var(--t1)}
+.tl-gap{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2)}
+.tl-gap.big{color:var(--orange);font-weight:700}
+
+.summary-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.sum-stat{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.sum-val{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--cyan)}
+.sum-label{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+/* PREFETCH ANALYZER */
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:14px}
+.field{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.field-key{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.field-val{font-size:13px;color:var(--t0);font-weight:600;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.alert-box{padding:12px 16px;border-radius:8px;margin-bottom:10px;font-size:12px;display:flex;gap:10px;align-items:flex-start}
+.alert-warn{background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.25);color:var(--yellow)}
+.alert-danger{background:rgba(255,34,68,.08);border:1px solid rgba(255,34,68,.25);color:var(--red)}
+.alert-info{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:var(--green)}
+
+.ref-table{width:100%;border-collapse:collapse;margin-top:10px}
+.ref-table th{text-align:left;font-size:10px;color:var(--t2);text-transform:uppercase;padding:8px;border-bottom:1px solid var(--border)}
+.ref-table td{padding:8px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ref-table code{font-family:'JetBrains Mono',monospace;color:var(--cyan);background:var(--bg2);padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="title">TIMELINE EXPLORER & ARTIFACT PARSER</div>
+  <div class="subtitle">Eric Zimmerman Tools (EZ Tools) mantığıyla — tarayıcıda çalışan forensic timeline & artifact analizi</div>
+
+  <div class="privacy-banner">
+    <span style="font-size:20px">🔒</span>
+    <div class="privacy-text">100% Yerel İşlem — Veri hiçbir yere gönderilmez</div>
+  </div>
+
+  <div class="soc-note">
+    <strong>FORENSIC NOTU:</strong> Bu araç EZ Tools (TimelineExplorer, MFTECmd, PECmd, AppCompatCacheParser çıktıları) mantığını web'de simüle eder. CSV/log çıktısını yapıştırarak super-timeline oluşturabilir, zaman boşluklarını (gap) tespit edebilir, Prefetch dosya adı pattern'lerini ve MFT timestamp anomalilerini (timestomping) analiz edebilirsiniz.
+  </div>
+
+  <div class="tool-tabs">
+    <div class="tool-tab active" onclick="switchPanel('timeline',this)">📅 Timeline Builder</div>
+    <div class="tool-tab" onclick="switchPanel('prefetch',this)">⚡ Prefetch Analyzer</div>
+    <div class="tool-tab" onclick="switchPanel('mft',this)">🗂️ MFT Timestomp Detector</div>
+    <div class="tool-tab" onclick="switchPanel('reference',this)">📖 EZ Tools Referans</div>
+  </div>
+
+  <!-- TIMELINE BUILDER -->
+  <div class="panel active" id="panel-timeline">
+    <div class="card">
+      <div class="examples">
+        <span style="font-size:11px;color:var(--t2);align-self:center">Örnek (TimelineExplorer formatı):</span>
+        <button class="ex-btn" onclick="loadTLExample()">CSV Timeline Yükle</button>
+      </div>
+      <textarea id="tl-input" placeholder="CSV veya satır satır log yapıştır. Format: TARİH, KAYNAK, AÇIKLAMA (virgülle ayrılmış veya TAB ile)
+
+Örnek:
+2026-06-29 09:00:00,Prefetch,CMD.EXE çalıştırıldı
+2026-06-29 09:05:12,EventLog,Logon başarılı (4624)
+2026-06-29 09:05:45,MFT,document.docx oluşturuldu"></textarea>
+      <button class="btn" onclick="buildTimeline()">Timeline Oluştur</button>
+      <button class="btn-sm" onclick="document.getElementById('tl-input').value='';document.getElementById('tl-results').innerHTML=''">Temizle</button>
+    </div>
+    <div id="tl-results"></div>
+  </div>
+
+  <!-- PREFETCH ANALYZER -->
+  <div class="panel" id="panel-prefetch">
+    <div class="card">
+      <div class="examples">
+        <span style="font-size:11px;color:var(--t2);align-self:center">Örnek:</span>
+        <button class="ex-btn" onclick="loadPFExample()">Prefetch Dosya Adları Yükle</button>
+      </div>
+      <textarea id="pf-input" placeholder="Prefetch dosya adlarını yapıştır (her satıra bir tane):
+
+Örnek:
+MIMIKATZ.EXE-A1B2C3D4.pf
+CMD.EXE-E5F6A7B8.pf
+POWERSHELL.EXE-12345678.pf
+NETCAT.EXE-9ABCDEF0.pf"></textarea>
+      <button class="btn" onclick="analyzePrefetch()">Prefetch Analiz Et</button>
+    </div>
+    <div id="pf-results"></div>
+  </div>
+
+  <!-- MFT TIMESTOMP DETECTOR -->
+  <div class="panel" id="panel-mft">
+    <div class="card">
+      <div style="font-size:12px;color:var(--t2);margin-bottom:12px;font-family:'JetBrains Mono',monospace">$STANDARD_INFORMATION ve $FILE_NAME timestamp'lerini karşılaştırarak timestomping (zaman damgası manipülasyonu) tespiti yapar.</div>
+      <div class="examples">
+        <span style="font-size:11px;color:var(--t2);align-self:center">Örnek:</span>
+        <button class="ex-btn" onclick="loadMFTExample()">Şüpheli MFT Kaydı Yükle</button>
+      </div>
+      <div class="field-grid">
+        <div>
+          <label style="font-size:11px;color:var(--t2)">$SI Created (Standard Info)</label>
+          <textarea id="si-created" style="min-height:40px" placeholder="2026-06-29 10:00:00"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--t2)">$FN Created (File Name)</label>
+          <textarea id="fn-created" style="min-height:40px" placeholder="2024-01-15 08:30:00"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--t2)">$SI Modified</label>
+          <textarea id="si-modified" style="min-height:40px" placeholder="2026-06-29 10:00:00"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--t2)">$FN Modified</label>
+          <textarea id="fn-modified" style="min-height:40px" placeholder="2024-01-15 08:30:00"></textarea>
+        </div>
+      </div>
+      <button class="btn" onclick="checkTimestomp()">Timestomp Kontrolü Yap</button>
+    </div>
+    <div id="mft-results"></div>
+  </div>
+
+  <!-- REFERENCE -->
+  <div class="panel" id="panel-reference">
+    <div class="card">
+      <div class="section-title" style="color:var(--cyan);font-size:14px;margin-bottom:10px">🛠️ Eric Zimmerman Tools — Hızlı Referans</div>
+      <table class="ref-table">
+        <tr><th>Araç</th><th>Ne İçin</th><th>Komut Örneği</th></tr>
+        <tr><td><strong>MFTECmd</strong></td><td>$MFT, $J, $Boot, $SDS analizi</td><td><code>MFTECmd.exe -f $MFT --csv out</code></td></tr>
+        <tr><td><strong>PECmd</strong></td><td>Prefetch dosyaları (.pf)</td><td><code>PECmd.exe -d C:\Windows\Prefetch --csv out</code></td></tr>
+        <tr><td><strong>AppCompatCacheParser</strong></td><td>ShimCache (program çalıştırma izleri)</td><td><code>AppCompatCacheParser.exe -f SYSTEM --csv out</code></td></tr>
+        <tr><td><strong>AmcacheParser</strong></td><td>Amcache.hve (yüklenen yazılımlar)</td><td><code>AmcacheParser.exe -f Amcache.hve --csv out</code></td></tr>
+        <tr><td><strong>RECmd</strong></td><td>Registry hive toplu sorgulama</td><td><code>RECmd.exe -d C:\ --bn BatchExamples\Kroll_Batch.reb</code></td></tr>
+        <tr><td><strong>RBCmd</strong></td><td>Recycle Bin ($I/$R dosyaları)</td><td><code>RBCmd.exe -d C:\$Recycle.Bin --csv out</code></td></tr>
+        <tr><td><strong>LECmd</strong></td><td>LNK (kısayol) dosyaları</td><td><code>LECmd.exe -d C:\Users --csv out</code></td></tr>
+        <tr><td><strong>JLECmd</strong></td><td>Jump List dosyaları</td><td><code>JLECmd.exe -d C:\Users --csv out</code></td></tr>
+        <tr><td><strong>EvtxECmd</strong></td><td>Windows Event Log (.evtx)</td><td><code>EvtxECmd.exe -f Security.evtx --csv out</code></td></tr>
+        <tr><td><strong>SQLECmd</strong></td><td>SQLite veritabanları (tarayıcı geçmişi vb)</td><td><code>SQLECmd.exe -f History --csv out</code></td></tr>
+        <tr><td><strong>TimelineExplorer</strong></td><td>CSV/timeline görselleştirme (GUI)</td><td>— GUI aracı, CSV açar</td></tr>
+        <tr><td><strong>Registry Explorer</strong></td><td>Registry hive GUI inceleme</td><td>— GUI aracı</td></tr>
+        <tr><td><strong>KAPE</strong></td><td>Toplu artifact toplama orkestratörü</td><td><code>kape.exe --tsource C: --target out --tflush --module !EZParser</code></td></tr>
+      </table>
+      <div style="margin-top:16px;font-size:12px;color:var(--t2);font-family:'JetBrains Mono',monospace">
+        Tüm araçlar ücretsiz: <a href="https://ericzimmerman.github.io/" target="_blank" style="color:var(--cyan)">ericzimmerman.github.io →</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchPanel(name,btn){
+  document.querySelectorAll('.tool-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ===== TIMELINE BUILDER =====
+function loadTLExample(){
+  document.getElementById('tl-input').value=`2026-06-29 08:55:00,EventLog,Sistem başlatıldı (Event 6005)
+2026-06-29 09:00:00,Prefetch,POWERSHELL.EXE çalıştırıldı
+2026-06-29 09:00:15,EventLog,PowerShell Script Block logu
+2026-06-29 09:01:30,Prefetch,MIMIKATZ.EXE çalıştırıldı
+2026-06-29 09:02:00,MFT,creds.txt dosyası oluşturuldu
+2026-06-29 09:03:45,Registry,Run key eklendi - persistence
+2026-06-29 09:15:00,EventLog,Başarısız giriş denemesi (4625)
+2026-06-29 09:15:05,EventLog,Başarısız giriş denemesi (4625)
+2026-06-29 09:15:10,EventLog,Başarılı giriş (4624) - lateral movement
+2026-06-29 14:30:00,Prefetch,RAR.EXE çalıştırıldı - data staging
+2026-06-29 14:35:00,Network,Büyük veri çıkışı tespit edildi (exfiltration)`;
+  buildTimeline();
+}
+
+function parseDate(str){
+  const d=new Date(str.trim());
+  return isNaN(d.getTime())?null:d;
+}
+
+function buildTimeline(){
+  const text=document.getElementById('tl-input').value.trim();
+  if(!text){document.getElementById('tl-results').innerHTML='';return;}
+
+  const lines=text.split('\n').filter(l=>l.trim());
+  const entries=[];
+
+  lines.forEach(line=>{
+    const parts=line.includes('\t')?line.split('\t'):line.split(',');
+    if(parts.length<3)return;
+    const ts=parts[0].trim();
+    const src=parts[1].trim();
+    const desc=parts.slice(2).join(',').trim();
+    const date=parseDate(ts);
+    entries.push({raw:ts,date,src,desc});
+  });
+
+  entries.sort((a,b)=>{
+    if(!a.date)return 1;
+    if(!b.date)return -1;
+    return a.date-b.date;
+  });
+
+  const sources={};
+  entries.forEach(e=>sources[e.src]=(sources[e.src]||0)+1);
+
+  let html=`<div class="summary-stats">
+    <div class="sum-stat"><div class="sum-val">${entries.length}</div><div class="sum-label">Toplam Olay</div></div>
+    <div class="sum-stat"><div class="sum-val">${Object.keys(sources).length}</div><div class="sum-label">Kaynak Türü</div></div>
+  </div>`;
+
+  html+=`<div class="tl-table"><div class="tl-head"><span>Zaman</span><span>Kaynak</span><span>Açıklama</span><span>Boşluk</span></div>`;
+  
+  let prevDate=null;
+  entries.forEach(e=>{
+    let gapText='—';
+    let gapClass='';
+    if(prevDate&&e.date){
+      const gapMs=e.date-prevDate;
+      const gapMin=gapMs/60000;
+      if(gapMin<1)gapText='<1dk';
+      else if(gapMin<60)gapText=Math.round(gapMin)+'dk';
+      else gapText=Math.round(gapMin/60)+'sa';
+      if(gapMin>180){gapClass='big';}
+    }
+    if(e.date)prevDate=e.date;
+
+    html+=`<div class="tl-row">
+      <span class="tl-ts">${escHtml(e.raw)}</span>
+      <span><span class="tl-src">${escHtml(e.src)}</span></span>
+      <span class="tl-desc">${escHtml(e.desc)}</span>
+      <span class="tl-gap ${gapClass}">${gapText}</span>
+    </div>`;
+  });
+  html+='</div>';
+
+  document.getElementById('tl-results').innerHTML=html;
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ===== PREFETCH ANALYZER =====
+const SUSPICIOUS_TOOLS = ['MIMIKATZ','PSEXEC','NETCAT','NC.EXE','NCAT','METASPLOIT','COBALTSTRIKE','BEACON','PWDUMP','PROCDUMP','RUBEUS','BLOODHOUND','SHARPHOUND','LAZAGNE','WCE.EXE','GSECDUMP','FGDUMP','HASHCAT','JOHN','RESPONDER','EMPIRE','METERPRETER','RUNDLL32','REGSVR32','MSHTA','CERTUTIL','BITSADMIN'];
+const LOLBINS = ['POWERSHELL','CMD.EXE','WMIC','RUNDLL32','REGSVR32','MSHTA','CERTUTIL','BITSADMIN','CSCRIPT','WSCRIPT','SCHTASKS','AT.EXE','INSTALLUTIL','MSBUILD'];
+
+function loadPFExample(){
+  document.getElementById('pf-input').value=`POWERSHELL.EXE-A1B2C3D4.pf
+MIMIKATZ.EXE-E5F6A7B8.pf
+CMD.EXE-12345678.pf
+NETCAT.EXE-9ABCDEF0.pf
+EXPLORER.EXE-AAAA1111.pf
+CHROME.EXE-BBBB2222.pf
+RUNDLL32.EXE-CCCC3333.pf
+WINWORD.EXE-DDDD4444.pf
+CERTUTIL.EXE-EEEE5555.pf`;
+  analyzePrefetch();
+}
+
+function analyzePrefetch(){
+  const text=document.getElementById('pf-input').value.trim();
+  if(!text){document.getElementById('pf-results').innerHTML='';return;}
+
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const alerts=[];
+  const entries=[];
+
+  lines.forEach(line=>{
+    const m=line.match(/^([A-Za-z0-9_\-\.]+?)\.EXE[_\-]([A-F0-9]+)\.pf$/i) || line.match(/^([A-Za-z0-9_\-\.]+?)\.EXE/i);
+    const exeName=m?m[1].toUpperCase():line.replace('.pf','').toUpperCase();
+    const isSuspicious=SUSPICIOUS_TOOLS.some(t=>exeName.includes(t.replace('.EXE','')));
+    const isLOLBin=LOLBINS.some(t=>exeName.includes(t.replace('.EXE','')));
+    entries.push({raw:line,exeName,isSuspicious,isLOLBin});
+  });
+
+  const suspCount=entries.filter(e=>e.isSuspicious).length;
+  const lolCount=entries.filter(e=>e.isLOLBin).length;
+
+  if(suspCount>0)alerts.push({type:'danger',icon:'🚨',msg:`${suspCount} adet bilinen saldırı aracı tespit edildi! (Mimikatz, Netcat, vb.)`});
+  if(lolCount>0)alerts.push({type:'warn',icon:'⚠️',msg:`${lolCount} adet LOLBin (Living Off The Land Binary) çalıştırılmış. Meşru sistem araçları kötü amaçlı kullanılmış olabilir (örn: certutil ile dosya indirme).`});
+  if(suspCount===0&&lolCount===0)alerts.push({type:'info',icon:'✅',msg:'Bilinen saldırı aracı veya şüpheli LOLBin tespit edilmedi.'});
+
+  let html=alerts.map(a=>`<div class="alert-box alert-${a.type}"><span>${a.icon}</span><div>${a.msg}</div></div>`).join('');
+
+  html+='<div class="field-grid">'+entries.map(e=>{
+    const color=e.isSuspicious?'var(--red)':(e.isLOLBin?'var(--orange)':'var(--green)');
+    const tag=e.isSuspicious?'🚨 ŞÜPHELİ ARAÇ':(e.isLOLBin?'⚠️ LOLBin':'✅ Normal');
+    return`<div class="field"><div class="field-key">${tag}</div><div class="field-val" style="color:${color}">${escHtml(e.exeName)}</div></div>`;
+  }).join('')+'</div>';
+
+  document.getElementById('pf-results').innerHTML=html;
+}
+
+// ===== MFT TIMESTOMP DETECTOR =====
+function loadMFTExample(){
+  document.getElementById('si-created').value='2026-06-29 10:00:00';
+  document.getElementById('fn-created').value='2024-01-15 08:30:00';
+  document.getElementById('si-modified').value='2026-06-29 10:00:00';
+  document.getElementById('fn-modified').value='2024-01-15 08:30:00';
+  checkTimestomp();
+}
+
+function checkTimestomp(){
+  const siC=parseDate(document.getElementById('si-created').value);
+  const fnC=parseDate(document.getElementById('fn-created').value);
+  const siM=parseDate(document.getElementById('si-modified').value);
+  const fnM=parseDate(document.getElementById('fn-modified').value);
+
+  const results=document.getElementById('mft-results');
+  let html='';
+  const alerts=[];
+
+  if(siC&&fnC){
+    const diffMs=Math.abs(siC-fnC);
+    const diffMin=diffMs/60000;
+    if(diffMin>5){
+      alerts.push({type:'danger',icon:'🚨',msg:`TIMESTOMPING TESPİT EDİLDİ! $STANDARD_INFORMATION ve $FILE_NAME Created zaman damgaları ${Math.round(diffMin)} dakika farklı. Windows normalde bu ikisini eşitler — manipülasyon işareti.`});
+    }else{
+      alerts.push({type:'info',icon:'✅',msg:'$SI ve $FN Created zamanları tutarlı görünüyor.'});
+    }
+  }
+
+  if(siM&&fnM){
+    const diffMs=Math.abs(siM-fnM);
+    const diffMin=diffMs/60000;
+    if(diffMin>5){
+      alerts.push({type:'warn',icon:'⚠️',msg:`Modified zaman damgalarında ${Math.round(diffMin)} dakika fark var. Dosya düzenleme sonrası farklılık normal olabilir, ancak büyük farklar şüpheli.`});
+    }
+  }
+
+  if(siC&&fnC&&siC<fnC){
+    alerts.push({type:'danger',icon:'⏰',msg:'$SI Created tarihi $FN Created tarihinden ÖNCE! Bu mantıksal olarak imkansızdır (NTFS\'de FN, dosya oluşturulduğunda set edilir ve değişmez) — kesin timestomping kanıtı.'});
+  }
+
+  html=alerts.map(a=>`<div class="alert-box alert-${a.type}"><span>${a.icon}</span><div>${a.msg}</div></div>`).join('');
+  html+=`<div class="card" style="margin-top:14px">
+    <div style="font-size:12px;color:var(--t2);line-height:1.7;font-family:'JetBrains Mono',monospace">
+    <strong style="color:var(--cyan)">Nasıl çalışır:</strong> NTFS'de her dosyanın iki ayrı timestamp seti vardır: $STANDARD_INFORMATION (kullanıcı araçlarının gösterdiği, kolayca değiştirilebilir — örn: <code>timestomp.exe</code> veya PowerShell ile) ve $FILE_NAME (MFT içinde, değiştirmek çok daha zordur). İkisi arasındaki tutarsızlık, saldırganın zaman damgalarını manipüle ettiğinin (anti-forensics) güçlü bir göstergesidir.<br><br>
+    MFTECmd ile gerçek $MFT dosyasından bu değerleri çıkarabilirsiniz: <code>MFTECmd.exe -f $MFT --csv out --csvf mft.csv</code>
+    </div></div>`;
+
+  results.innerHTML=html;
+}
+</script>
+</body>
+</html>
