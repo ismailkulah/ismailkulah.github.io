@@ -8,53 +8,74 @@
 <style>
 :root{
   --bg:#030712;--bg1:#080f1e;--bg2:#0d1526;--bg3:#111c30;
-  --cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;
+  --cyan:#00f0ff;--purple:#bd00ff;--green:#00ff88;--red:#ff2244;--orange:#ff8c00;--yellow:#ffcc00;
   --t0:#fff;--t1:#b8cce0;--t2:#5a7a96;--t3:#2a4060;
   --border:rgba(0,240,255,.08);--border2:rgba(0,240,255,.2);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--t1);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0px,rgba(0,0,0,.03) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:1000}
 
-/* SCAN LINE OVERLAY */
-body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.03) 0px,rgba(0,0,0,.03) 1px,transparent 1px,transparent 2px);pointer-events:none;z-index:1000}
+/* TOP STATUS BAR - LIVE CLOCK */
+.statusbar{position:fixed;top:0;left:0;right:0;z-index:950;background:linear-gradient(90deg,rgba(0,255,136,.08),rgba(0,240,255,.08),rgba(189,0,255,.08));border-bottom:1px solid var(--border);padding:5px 24px;display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2);flex-wrap:wrap;gap:6px}
+.sb-item{display:flex;align-items:center;gap:6px}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.sb-clock{color:var(--cyan);font-weight:500;letter-spacing:.5px}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,7,18,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-.nav-logo{font-size:16px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;text-decoration:none;display:flex;align-items:center;gap:8px}
+nav{position:fixed;top:26px;left:0;right:0;z-index:900;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,7,18,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:15px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;text-decoration:none;display:flex;align-items:center;gap:8px}
 .nav-logo::before{content:'▸';color:var(--purple);animation:blink 1.2s infinite}
-.nav-links{display:flex;gap:28px;list-style:none}
-.nav-links a{color:var(--t2);text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.5px;transition:color .2s;text-transform:uppercase}
+.nav-links{display:flex;gap:26px;list-style:none}
+.nav-links a{color:var(--t2);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.5px;transition:color .2s;text-transform:uppercase}
 .nav-links a:hover{color:var(--cyan)}
-.nav-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
 
 /* HERO */
-.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:80px 24px 40px;overflow:hidden}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:140px 24px 60px;overflow:hidden}
 .hero-bg{position:absolute;inset:0;overflow:hidden}
-.grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.03) 1px,transparent 1px);background-size:60px 60px;animation:grid-move 20s linear infinite}
-@keyframes grid-move{0%{background-position:0 0}100%{background-position:60px 60px}}
-.hero-glow{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(0,240,255,.08) 0%,rgba(189,0,255,.05) 50%,transparent 70%);pointer-events:none}
-.hero-content{position:relative;z-index:2;max-width:900px;width:100%;text-align:center}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:28px;animation:fadeInDown .8s ease}
-.hero-name{font-size:clamp(40px,8vw,80px);font-weight:700;line-height:1.05;margin-bottom:12px;animation:fadeInUp .8s ease .1s both}
+.grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.035) 1px,transparent 1px);background-size:50px 50px;animation:grid-move 25s linear infinite}
+@keyframes grid-move{0%{background-position:0 0}100%{background-position:50px 50px}}
+.hero-glow{position:absolute;top:15%;left:50%;transform:translateX(-50%);width:700px;height:450px;background:radial-gradient(ellipse,rgba(0,240,255,.1) 0%,rgba(189,0,255,.06) 45%,transparent 70%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:10%;right:5%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(0,255,136,.08) 0%,transparent 70%);pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:920px;width:100%;text-align:center}
+
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.25);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:28px;animation:fadeInDown .8s ease}
+.hero-name{font-size:clamp(40px,8vw,82px);font-weight:700;line-height:1.05;margin-bottom:12px;animation:fadeInUp .8s ease .1s both}
 .hero-name .first{color:var(--t0)}
-.hero-name .last{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-name .last{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--green));background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s ease infinite}
+@keyframes gradientShift{0%,100%{background-position:0% center}50%{background-position:100% center}}
 .hero-title{font-size:clamp(16px,3vw,22px);color:var(--t2);margin-bottom:32px;font-family:'JetBrains Mono',monospace;font-weight:300;animation:fadeInUp .8s ease .2s both}
-.typed-wrap{height:28px;margin-bottom:40px;animation:fadeInUp .8s ease .3s both}
+.typed-wrap{height:28px;margin-bottom:36px;animation:fadeInUp .8s ease .3s both}
 .typed{font-size:18px;color:var(--green);font-family:'JetBrains Mono',monospace;font-weight:500}
 .typed-cursor{color:var(--cyan);animation:blink .7s infinite}
+
+/* LIVE DASHBOARD WIDGET (gif-like animated panel) */
+.live-dashboard{max-width:700px;margin:0 auto 40px;background:var(--bg1);border:1px solid var(--border2);border-radius:14px;overflow:hidden;animation:fadeInUp .8s ease .35s both;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ld-titlebar{padding:10px 16px;background:var(--bg2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.ld-dot{width:11px;height:11px;border-radius:50%}
+.ld-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2);margin-left:6px}
+.ld-body{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ld-stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:left;position:relative;overflow:hidden}
+.ld-stat::after{content:'';position:absolute;bottom:0;left:0;height:2px;background:var(--stat-color,var(--cyan));width:var(--stat-w,60%);animation:statPulse 2.5s ease-in-out infinite}
+@keyframes statPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.ld-stat-label{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.ld-stat-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px;color:var(--stat-color,var(--cyan))}
+.ld-scanline{grid-column:1/-1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);text-align:left;height:20px;overflow:hidden;position:relative}
+.ld-scan-text{white-space:nowrap;animation:scanText 8s linear infinite}
+@keyframes scanText{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
 .hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeInUp .8s ease .4s both}
 .btn-hero{padding:13px 28px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;text-decoration:none;font-family:'Rajdhani',sans-serif;display:inline-flex;align-items:center;gap:8px;border:none}
 .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,240,255,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,240,255,.35)}
 .btn-outline{background:transparent;color:var(--cyan);border:1px solid var(--cyan)}
 .btn-outline:hover{background:rgba(0,240,255,.08);transform:translateY(-2px)}
-.hero-stats{display:flex;gap:40px;justify-content:center;margin-top:56px;animation:fadeInUp .8s ease .5s both;flex-wrap:wrap}
+.hero-stats{display:flex;gap:40px;justify-content:center;margin-top:52px;animation:fadeInUp .8s ease .5s both;flex-wrap:wrap}
 .stat{text-align:center}
 .stat-num{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-lbl{font-size:12px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
-.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;color:var(--t3);font-size:20px}
+.scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;color:var(--t3);font-size:20px}
 @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
 
 /* TERMINAL SECTION */
@@ -69,32 +90,47 @@ nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 24px;height:60px;d
 .dot-y{width:12px;height:12px;border-radius:50%;background:#ffbd2e}
 .dot-g{width:12px;height:12px;border-radius:50%;background:#27c93f}
 .terminal-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);margin-left:8px}
-.terminal-body{padding:24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2}
+.terminal-body{padding:24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2;min-height:380px}
 .t-prompt{color:var(--cyan)}
-.t-cmd{color:var(--t0)}
 .t-out{color:var(--green)}
-.t-out2{color:var(--t1)}
 .t-comment{color:var(--t2)}
 .t-purple{color:var(--purple)}
 .t-orange{color:var(--orange)}
 
+/* ATTACK MAP STYLE WIDGET */
+.attackmap-section{padding:60px 24px;background:var(--bg)}
+.attackmap-card{max-width:1000px;margin:0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:24px;position:relative;overflow:hidden}
+.attackmap-title{font-size:13px;color:var(--cyan);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.attackmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.am-row{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;justify-content:space-between;align-items:center;opacity:0;animation:slideInFade .4s ease forwards}
+.am-ip{color:var(--cyan)}
+.am-flag{color:var(--t2)}
+.am-sev{padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700}
+.am-sev.high{background:rgba(255,34,68,.2);color:var(--red)}
+.am-sev.med{background:rgba(255,140,0,.15);color:var(--orange)}
+.am-sev.low{background:rgba(0,255,136,.12);color:var(--green)}
+@keyframes slideInFade{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
 /* TOOLS SECTION */
 .tools-section{padding:80px 24px}
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;max-width:1100px;margin:0 auto}
-.tool-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:24px;text-decoration:none;color:inherit;transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+.tool-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px}
 .tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,linear-gradient(90deg,var(--cyan),var(--purple)));opacity:0;transition:opacity .25s}
 .tool-card:hover{border-color:rgba(0,240,255,.3);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.5)}
 .tool-card:hover::before{opacity:1}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between}
-.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .card-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
-.badge-new{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
-.card-name{font-size:16px;font-weight:700;color:var(--t0)}
-.card-desc{font-size:13px;color:var(--t2);line-height:1.6}
+.badge-tag{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.card-name{font-size:15px;font-weight:700;color:var(--t0)}
+.card-desc{font-size:12px;color:var(--t2);line-height:1.55}
 .card-tags{display:flex;flex-wrap:wrap;gap:5px}
-.tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(0,240,255,.06);border:1px solid var(--border);color:var(--t2);font-family:'JetBrains Mono',monospace}
-.card-arrow{font-size:13px;color:var(--t3);margin-top:auto;transition:color .2s}
+.tag{font-size:9px;padding:2px 7px;border-radius:8px;background:rgba(0,240,255,.06);border:1px solid var(--border);color:var(--t2);font-family:'JetBrains Mono',monospace}
+.card-arrow{font-size:12px;color:var(--t3);margin-top:auto;transition:color .2s}
 .tool-card:hover .card-arrow{color:var(--cyan)}
+
+.category-label{font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px;margin:36px 0 14px;display:flex;align-items:center;gap:12px;max-width:1200px;margin-left:auto;margin-right:auto}
+.category-label::after{content:'';flex:1;height:1px;background:var(--border2)}
 
 /* SKILLS */
 .skills-section{padding:80px 24px;background:var(--bg1)}
@@ -110,33 +146,36 @@ nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 24px;height:60px;d
 .certs-section{padding:80px 24px}
 .certs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;max-width:900px;margin:0 auto}
 .cert-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px}
-.cert-icon{font-size:28px;flex-shrink:0}
+.cert-icon{font-size:26px;flex-shrink:0}
 .cert-name{font-size:14px;font-weight:700;color:var(--t0)}
 .cert-status{font-size:11px;margin-top:3px;font-family:'JetBrains Mono',monospace}
 .cert-done{color:var(--green)}
 .cert-progress{color:var(--orange)}
 .cert-planned{color:var(--t2)}
 
-/* FOOTER */
 footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border);text-align:center}
 .footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap}
 .footer-links a{color:var(--t2);text-decoration:none;font-size:13px;transition:color .2s;font-family:'JetBrains Mono',monospace}
 .footer-links a:hover{color:var(--cyan)}
 .footer-copy{font-size:12px;color:var(--t3);font-family:'JetBrains Mono',monospace}
 
-/* ANIMATIONS */
 @keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+#matrix-canvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.07;pointer-events:none}
 
-/* MATRIX RAIN CANVAS */
-#matrix-canvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.06;pointer-events:none}
-
-@media(max-width:600px){.nav-links{display:none}.hero-stats{gap:24px}.tools-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.nav-links{display:none}.hero-stats{gap:24px}.tools-grid{grid-template-columns:1fr}.ld-body{grid-template-columns:1fr}.statusbar{font-size:9px}}
 </style>
 </head>
 <body>
+
+<!-- LIVE STATUS BAR -->
+<div class="statusbar">
+  <div class="sb-item"><div class="sb-dot"></div>SYSTEM ONLINE</div>
+  <div class="sb-item sb-clock" id="live-clock">--:--:--</div>
+  <div class="sb-item" id="live-date">-- --- ----</div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -147,7 +186,6 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
     <li><a href="/writeups/">Write-ups</a></li>
     <li><a href="/about/">Hakkımda</a></li>
   </ul>
-  <div class="nav-status"><div class="status-dot"></div>ONLINE</div>
 </nav>
 
 <!-- HERO -->
@@ -156,25 +194,51 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
   <div class="hero-bg">
     <div class="grid-lines"></div>
     <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
   </div>
   <div class="hero-content">
-    <div class="hero-badge">
-      <span>◈</span>
-      <span>Siber Güvenlik Uzmanı & CTF Player</span>
-    </div>
-    <h1 class="hero-name">
-      <span class="first">İsmail </span><span class="last">Külah</span>
-    </h1>
+    <div class="hero-badge"><span>◈</span><span>Siber Güvenlik Uzmanı & CTF Player</span></div>
+    <h1 class="hero-name"><span class="first">İsmail </span><span class="last">Külah</span></h1>
     <div class="hero-title">Security Analyst | Forensic Investigator | Red & Blue Team</div>
-    <div class="typed-wrap">
-      <span class="typed" id="typed-text"></span><span class="typed-cursor">_</span>
+    <div class="typed-wrap"><span class="typed" id="typed-text"></span><span class="typed-cursor">_</span></div>
+
+    <!-- LIVE ANIMATED DASHBOARD -->
+    <div class="live-dashboard">
+      <div class="ld-titlebar">
+        <div class="ld-dot" style="background:#ff5f56"></div>
+        <div class="ld-dot" style="background:#ffbd2e"></div>
+        <div class="ld-dot" style="background:#27c93f"></div>
+        <span class="ld-name">live-monitor.sh — running</span>
+      </div>
+      <div class="ld-body">
+        <div class="ld-stat" style="--stat-color:var(--green);--stat-w:78%">
+          <div class="ld-stat-label">Sistem Durumu</div>
+          <div class="ld-stat-val">AKTİF</div>
+        </div>
+        <div class="ld-stat" style="--stat-color:var(--cyan);--stat-w:45%">
+          <div class="ld-stat-label">Araç Sayısı</div>
+          <div class="ld-stat-val" id="tool-counter">0</div>
+        </div>
+        <div class="ld-stat" style="--stat-color:var(--purple);--stat-w:60%">
+          <div class="ld-stat-label">Çalışma Süresi</div>
+          <div class="ld-stat-val" id="uptime-counter">00:00:00</div>
+        </div>
+        <div class="ld-stat" style="--stat-color:var(--orange);--stat-w:90%">
+          <div class="ld-stat-label">Tehdit Seviyesi</div>
+          <div class="ld-stat-val" style="color:var(--green)">DÜŞÜK</div>
+        </div>
+        <div class="ld-scanline">
+          <div class="ld-scan-text" id="scan-text">▸ Scanning network... ▸ Checking CVE database... ▸ Threat intel sync complete... ▸ All systems nominal... ▸ Scanning network... ▸ Checking CVE database... ▸ Threat intel sync complete... ▸ All systems nominal...</div>
+        </div>
+      </div>
     </div>
+
     <div class="hero-btns">
       <a class="btn-hero btn-primary" href="/tools/">Araçları Keşfet</a>
       <a class="btn-hero btn-outline" href="/about/">Profil</a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">10+</div><div class="stat-lbl">Güvenlik Aracı</div></div>
+      <div class="stat"><div class="stat-num">16+</div><div class="stat-lbl">Güvenlik Aracı</div></div>
       <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">CTF Çözümü</div></div>
       <div class="stat"><div class="stat-num">5+</div><div class="stat-lbl">Yıl Deneyim</div></div>
       <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Açık Kaynak</div></div>
@@ -200,89 +264,181 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
   </div>
 </section>
 
+<!-- LIVE THREAT FEED (simulated, animated) -->
+<section class="attackmap-section">
+  <div class="attackmap-card">
+    <div class="attackmap-title"><span style="color:var(--red)">●</span> CANLI TEHDİT İSTİHBARATI SİMÜLASYONU <span style="color:var(--t2);font-weight:400;font-size:10px;margin-left:auto">(demo verisi)</span></div>
+    <div class="attackmap-grid" id="threat-feed"></div>
+  </div>
+</section>
+
 <!-- TOOLS -->
 <section class="tools-section">
   <div class="section-header">
     <div class="section-eyebrow">ls -la /tools/</div>
     <h2 class="section-title">Güvenlik Araçları</h2>
   </div>
+
+  <div class="category-label">Analiz & Tehdit İstihbaratı</div>
   <div class="tools-grid">
     <a class="tool-card" href="/tools/phishing-analyzer/" style="--card-accent:linear-gradient(90deg,#ff2244,#ff8c00)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(255,34,68,.1)">🎣</div><div class="card-badges"><span class="badge-new" style="background:rgba(255,34,68,.2);color:#ff2244;border:1px solid rgba(255,34,68,.3)">ÖZEL</span></div></div>
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,34,68,.1)">🎣</div><div class="card-badges"><span class="badge-tag" style="background:rgba(255,34,68,.2);color:#ff2244;border:1px solid rgba(255,34,68,.3)">ÖZEL</span></div></div>
       <div class="card-name">PhishGuard Terminator</div>
-      <div class="card-desc">Gelişmiş phishing analiz motoru. URL, e-posta ve domain risk analizi + PDF rapor.</div>
-      <div class="card-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">IOC</span><span class="tag">PDF Rapor</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">Gelişmiş phishing analiz motoru. URL, e-posta, domain risk analizi + PDF rapor.</div>
+      <div class="card-tags"><span class="tag">URL</span><span class="tag">E-posta</span><span class="tag">IOC</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
-    <a class="tool-card" href="/tools/cve-dashboard/" style="--card-accent:linear-gradient(90deg,#ff8c00,#ffcc00)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🛡️</div></div>
-      <div class="card-name">CVE Dashboard</div>
-      <div class="card-desc">2024 CVE veritabanı. CVSS skorları, severity filtreleme ve detaylı zafiyet analizi.</div>
-      <div class="card-tags"><span class="tag">CVE</span><span class="tag">CVSS</span><span class="tag">NVD</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
-    </a>
-    <a class="tool-card" href="/tools/reverse-shell-gen/" style="--card-accent:linear-gradient(90deg,#bd00ff,#ff2244)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">💀</div><div class="card-badges"><span class="badge-new" style="background:rgba(189,0,255,.2);color:#bd00ff;border:1px solid rgba(189,0,255,.3)">RED TEAM</span></div></div>
-      <div class="card-name">Reverse Shell Generator</div>
-      <div class="card-desc">Bash, Python, Netcat, PowerShell ve daha fazlası için reverse shell payload üretici.</div>
-      <div class="card-tags"><span class="tag">Bash</span><span class="tag">Python</span><span class="tag">PowerShell</span><span class="tag">Msfvenom</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
-    </a>
-    <a class="tool-card" href="/tools/jwt-decoder/" style="--card-accent:linear-gradient(90deg,#00f0ff,#bd00ff)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔑</div></div>
-      <div class="card-name">JWT Decoder</div>
-      <div class="card-desc">JSON Web Token analizi. alg:none tespiti, expire kontrolü, admin claim analizi.</div>
-      <div class="card-tags"><span class="tag">JWT</span><span class="tag">Auth</span><span class="tag">alg:none</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+    <a class="tool-card" href="/tools/mitre-attack-lookup/" style="--card-accent:linear-gradient(90deg,#ff2244,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,34,68,.1)">🛡️</div></div>
+      <div class="card-name">MITRE ATT&CK Lookup</div>
+      <div class="card-desc">Saldırı taktik ve teknikleri, tespit yöntemleri referansı.</div>
+      <div class="card-tags"><span class="tag">TTPs</span><span class="tag">Detection</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
     <a class="tool-card" href="/tools/subdomain-finder/" style="--card-accent:linear-gradient(90deg,#00ff88,#00f0ff)">
       <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🔍</div></div>
       <div class="card-name">Subdomain Finder</div>
-      <div class="card-desc">crt.sh Certificate Transparency tabanlı pasif subdomain keşif aracı.</div>
-      <div class="card-tags"><span class="tag">OSINT</span><span class="tag">crt.sh</span><span class="tag">Recon</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
-    </a>
-    <a class="tool-card" href="/tools/crypto-lab/" style="--card-accent:linear-gradient(90deg,#ffcc00,#ff8c00)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(255,204,0,.1)">🔐</div></div>
-      <div class="card-name">Crypto Lab</div>
-      <div class="card-desc">Base64, SHA hash, Caesar, Hex/Binary, ROT13/47, URL encode, Morse — tek sayfada.</div>
-      <div class="card-tags"><span class="tag">Base64</span><span class="tag">Hash</span><span class="tag">Caesar</span><span class="tag">Morse</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
-    </a>
-    <a class="tool-card" href="/tools/hash-identifier/" style="--card-accent:linear-gradient(90deg,#00f0ff,#00ff88)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔎</div></div>
-      <div class="card-name">Hash Identifier</div>
-      <div class="card-desc">MD5, SHA ailesi, NTLM, bcrypt ve daha fazlasını otomatik tanımla.</div>
-      <div class="card-tags"><span class="tag">MD5</span><span class="tag">SHA-256</span><span class="tag">NTLM</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">crt.sh Certificate Transparency tabanlı pasif subdomain keşfi.</div>
+      <div class="card-tags"><span class="tag">OSINT</span><span class="tag">Recon</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
     <a class="tool-card" href="/tools/ip-lookup/" style="--card-accent:linear-gradient(90deg,#bd00ff,#00f0ff)">
       <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">🌐</div></div>
       <div class="card-name">IP Lookup</div>
-      <div class="card-desc">IP adresi konum, ISP, ASN ve ağ bilgisi sorgulama. Kendi IP'ni öğren.</div>
-      <div class="card-tags"><span class="tag">GeoIP</span><span class="tag">ASN</span><span class="tag">ISP</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">IP adresi konum, ISP, ASN ve ağ bilgisi sorgulama.</div>
+      <div class="card-tags"><span class="tag">GeoIP</span><span class="tag">ASN</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+  </div>
+
+  <div class="category-label">Forensic & Blue Team</div>
+  <div class="tools-grid">
+    <a class="tool-card" href="/tools/image-metadata-analyzer/" style="--card-accent:linear-gradient(90deg,#bd00ff,#ff8c00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">📷</div><div class="card-badges"><span class="badge-tag" style="background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3)">YENİ</span></div></div>
+      <div class="card-name">Image Metadata Analyzer</div>
+      <div class="card-desc">EXIF, GPS konumu, kamera bilgisi ve gizli veri tespiti.</div>
+      <div class="card-tags"><span class="tag">EXIF</span><span class="tag">GPS</span><span class="tag">Stego</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/timeline-explorer/" style="--card-accent:linear-gradient(90deg,#00ff88,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🗂️</div><div class="card-badges"><span class="badge-tag" style="background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3)">YENİ</span></div></div>
+      <div class="card-name">Timeline Explorer (EZ Tools)</div>
+      <div class="card-desc">Forensic timeline, Prefetch analizi, MFT timestomp tespiti.</div>
+      <div class="card-tags"><span class="tag">MFT</span><span class="tag">Prefetch</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/universal-log-parser/" style="--card-accent:linear-gradient(90deg,#00f0ff,#00ff88)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">📋</div></div>
+      <div class="card-name">Universal Log Parser</div>
+      <div class="card-desc">IIS, Apache, Windows Event, Syslog, Firewall, WAF — satır satır parse.</div>
+      <div class="card-tags"><span class="tag">SIEM</span><span class="tag">Multi-format</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/timestamp-converter/" style="--card-accent:linear-gradient(90deg,#bd00ff,#00f0ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">⏱️</div></div>
+      <div class="card-name">Timestamp Converter</div>
+      <div class="card-desc">Unix, Windows FILETIME, WebKit timestamp dönüşümü.</div>
+      <div class="card-tags"><span class="tag">Epoch</span><span class="tag">FILETIME</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/file-signature-detector/" style="--card-accent:linear-gradient(90deg,#ff8c00,#ffcc00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🔬</div></div>
+      <div class="card-name">File Signature Detector</div>
+      <div class="card-desc">Magic number tespiti, sahte dosya uzantısı yakalama.</div>
+      <div class="card-tags"><span class="tag">Magic Bytes</span><span class="tag">Hex</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/log-analyzer/" style="--card-accent:linear-gradient(90deg,#00f0ff,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">📊</div></div>
+      <div class="card-name">Log Analyzer</div>
+      <div class="card-desc">SSH/Web log analizi — brute-force ve saldırı tespiti.</div>
+      <div class="card-tags"><span class="tag">SSH</span><span class="tag">Web Logs</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+  </div>
+
+  <div class="category-label">Red Team & Pentest</div>
+  <div class="tools-grid">
+    <a class="tool-card" href="/tools/reverse-shell-gen/" style="--card-accent:linear-gradient(90deg,#bd00ff,#ff2244)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">💀</div><div class="card-badges"><span class="badge-tag" style="background:rgba(189,0,255,.2);color:#bd00ff;border:1px solid rgba(189,0,255,.3)">RED TEAM</span></div></div>
+      <div class="card-name">Reverse Shell Generator</div>
+      <div class="card-desc">Bash, Python, Netcat, PowerShell payload üretici.</div>
+      <div class="card-tags"><span class="tag">Bash</span><span class="tag">PowerShell</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/jwt-decoder/" style="--card-accent:linear-gradient(90deg,#00f0ff,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔑</div></div>
+      <div class="card-name">JWT Decoder</div>
+      <div class="card-desc">JSON Web Token analizi, alg:none ve admin claim tespiti.</div>
+      <div class="card-tags"><span class="tag">JWT</span><span class="tag">Auth</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/security-headers/" style="--card-accent:linear-gradient(90deg,#00ff88,#00f0ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🛡️</div></div>
+      <div class="card-name">Security Headers Checker</div>
+      <div class="card-desc">HTTP güvenlik header analizi ve A-F notlama.</div>
+      <div class="card-tags"><span class="tag">CSP</span><span class="tag">HSTS</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/regex-tester/" style="--card-accent:linear-gradient(90deg,#ff8c00,#ffcc00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🔣</div></div>
+      <div class="card-name">Security Regex Tester</div>
+      <div class="card-desc">IOC ve log analizi için hazır güvenlik regex desenleri.</div>
+      <div class="card-tags"><span class="tag">IOC</span><span class="tag">Regex</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+  </div>
+
+  <div class="category-label">Kriptografi & CTF</div>
+  <div class="tools-grid">
+    <a class="tool-card" href="/tools/crypto-lab/" style="--card-accent:linear-gradient(90deg,#ffcc00,#ff8c00)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,204,0,.1)">🔐</div></div>
+      <div class="card-name">Crypto Lab</div>
+      <div class="card-desc">Base64, Hash, Caesar, Hex/Binary, ROT13/47, Morse.</div>
+      <div class="card-tags"><span class="tag">Base64</span><span class="tag">Morse</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/hash-identifier/" style="--card-accent:linear-gradient(90deg,#00f0ff,#00ff88)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">🔎</div></div>
+      <div class="card-name">Hash Identifier</div>
+      <div class="card-desc">MD5, SHA, NTLM, bcrypt otomatik tanımlama.</div>
+      <div class="card-tags"><span class="tag">MD5</span><span class="tag">SHA-256</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/ctf-flag-finder/" style="--card-accent:linear-gradient(90deg,#00ff88,#bd00ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🚩</div></div>
+      <div class="card-name">CTF Flag Finder</div>
+      <div class="card-desc">Büyük metin içinde flag formatlarını otomatik tarama.</div>
+      <div class="card-tags"><span class="tag">flag{}</span><span class="tag">HTB</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
+    </a>
+    <a class="tool-card" href="/tools/file-hash-checker/" style="--card-accent:linear-gradient(90deg,#bd00ff,#00f0ff)">
+      <div class="card-header"><div class="card-icon" style="background:rgba(189,0,255,.1)">📁</div></div>
+      <div class="card-name">File Hash Checker</div>
+      <div class="card-desc">Dosya hash hesaplama ve karşılaştırma.</div>
+      <div class="card-tags"><span class="tag">SHA-256</span><span class="tag">Compare</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
     <a class="tool-card" href="/tools/password-generator/" style="--card-accent:linear-gradient(90deg,#00ff88,#bd00ff)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🔒</div><div class="card-badges"><span class="badge-new" style="background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3)">YENİ</span></div></div>
+      <div class="card-header"><div class="card-icon" style="background:rgba(0,255,136,.1)">🔒</div></div>
       <div class="card-name">Password Generator</div>
-      <div class="card-desc">Kriptografik güvenli parola üretici + entropi analizi + brute-force süre tahmini.</div>
-      <div class="card-tags"><span class="tag">Entropi</span><span class="tag">CSPRNG</span><span class="tag">NIST</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">Kriptografik güvenli parola üretici + entropi analizi.</div>
+      <div class="card-tags"><span class="tag">Entropi</span><span class="tag">NIST</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
     <a class="tool-card" href="/tools/url-defanger/" style="--card-accent:linear-gradient(90deg,#ff8c00,#bd00ff)">
-      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🛡️</div></div>
+      <div class="card-header"><div class="card-icon" style="background:rgba(255,140,0,.1)">🛑</div></div>
       <div class="card-name">URL Defanger</div>
-      <div class="card-desc">Tehlikeli URL ve IP'leri güvenli raporlama formatına dönüştür. MITRE standart.</div>
-      <div class="card-tags"><span class="tag">IOC</span><span class="tag">Defang</span><span class="tag">Rapor</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">Tehlikeli URL/IP'leri güvenli raporlama formatına çevirir.</div>
+      <div class="card-tags"><span class="tag">IOC</span><span class="tag">Defang</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
     <a class="tool-card" href="/tools/mac-lookup/" style="--card-accent:linear-gradient(90deg,#00f0ff,#ff8c00)">
       <div class="card-header"><div class="card-icon" style="background:rgba(0,240,255,.1)">📡</div></div>
       <div class="card-name">MAC Address Lookup</div>
-      <div class="card-desc">OUI vendor sorgusu, MAC spoofing tespiti ve format dönüşümü.</div>
-      <div class="card-tags"><span class="tag">OUI</span><span class="tag">Forensics</span><span class="tag">Network</span></div>
-      <div class="card-arrow">Araci Kullan →</div>
+      <div class="card-desc">OUI vendor sorgusu, MAC spoofing tespiti.</div>
+      <div class="card-tags"><span class="tag">OUI</span><span class="tag">Spoof</span></div>
+      <div class="card-arrow">Aracı Kullan →</div>
     </a>
   </div>
 </section>
@@ -290,10 +446,7 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
 <!-- SKILLS -->
 <section class="skills-section">
   <div class="section-wrap">
-    <div class="section-header">
-      <div class="section-eyebrow">skill --list</div>
-      <h2 class="section-title">Teknik Yetkinlikler</h2>
-    </div>
+    <div class="section-header"><div class="section-eyebrow">skill --list</div><h2 class="section-title">Teknik Yetkinlikler</h2></div>
     <div class="skills-grid" id="skills-grid"></div>
   </div>
 </section>
@@ -301,10 +454,7 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
 <!-- CERTS -->
 <section class="certs-section">
   <div class="section-wrap">
-    <div class="section-header">
-      <div class="section-eyebrow">cat certifications.json</div>
-      <h2 class="section-title">Sertifikalar & Hedefler</h2>
-    </div>
+    <div class="section-header"><div class="section-eyebrow">cat certifications.json</div><h2 class="section-title">Sertifikalar & Hedefler</h2></div>
     <div class="certs-grid">
       <div class="cert-card"><span class="cert-icon">🏆</span><div><div class="cert-name">CompTIA Security+</div><div class="cert-status cert-progress">⟳ Hazırlanıyor</div></div></div>
       <div class="cert-card"><span class="cert-icon">🎯</span><div><div class="cert-name">CEH — Certified Ethical Hacker</div><div class="cert-status cert-progress">⟳ Planlı</div></div></div>
@@ -314,7 +464,6 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <div class="footer-links">
     <a href="https://github.com/ismailkulah" target="_blank">github.com/ismailkulah</a>
@@ -322,10 +471,44 @@ footer{padding:40px 24px;background:var(--bg1);border-top:1px solid var(--border
     <a href="/tools/">tools</a>
     <a href="/blog/">blog</a>
   </div>
-  <div class="footer-copy">© 2024 İsmail Külah — Built with Hugo & ❤️ | ismailkulah.github.io</div>
+  <div class="footer-copy">© 2026 İsmail Külah — Built with Hugo & ❤️ | ismailkulah.github.io</div>
 </footer>
 
 <script>
+// LIVE CLOCK
+function updateClock(){
+  const now=new Date();
+  const tr=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Istanbul'}));
+  const h=String(tr.getHours()).padStart(2,'0');
+  const m=String(tr.getMinutes()).padStart(2,'0');
+  const s=String(tr.getSeconds()).padStart(2,'0');
+  document.getElementById('live-clock').textContent=`🕐 ${h}:${m}:${s} (TR)`;
+  const days=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const months=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  document.getElementById('live-date').textContent=`${tr.getDate()} ${months[tr.getMonth()]} ${tr.getFullYear()}, ${days[tr.getDay()]}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+// UPTIME COUNTER (session-based)
+const startTime=Date.now();
+function updateUptime(){
+  const diff=Date.now()-startTime;
+  const h=String(Math.floor(diff/3600000)).padStart(2,'0');
+  const m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  document.getElementById('uptime-counter').textContent=`${h}:${m}:${s}`;
+}
+setInterval(updateUptime,1000);
+
+// TOOL COUNTER ANIMATION
+let toolCount=0;
+const toolTarget=16;
+const toolInterval=setInterval(()=>{
+  toolCount++;
+  document.getElementById('tool-counter').textContent=toolCount;
+  if(toolCount>=toolTarget)clearInterval(toolInterval);
+},80);
+
 // MATRIX RAIN
 const canvas=document.getElementById('matrix-canvas');
 const ctx=canvas.getContext('2d');
@@ -346,7 +529,7 @@ function drawMatrix(){
 setInterval(drawMatrix,60);
 
 // TYPED EFFECT
-const phrases=['Threat Hunting...','Digital Forensics...','Penetration Testing...','CTF Challenges...','SOC Analysis...','Malware Reverse Engineering...'];
+const phrases=['Threat Hunting...','Digital Forensics...','Penetration Testing...','CTF Challenges...','SOC Analysis...','Malware Reverse Engineering...','Incident Response...'];
 let pi=0,ci=0,del=false;
 function typed(){
   const el=document.getElementById('typed-text');
@@ -359,15 +542,14 @@ typed();
 
 // TERMINAL ANIMATION
 const lines=[
-  {t:'prompt',txt:'whoami'},
-  {t:'out',txt:'ismail-kulah'},
+  {t:'prompt',txt:'whoami'},{t:'out',txt:'ismail-kulah'},
   {t:'prompt',txt:'cat /etc/profile'},
   {t:'comment',txt:'# Siber Güvenlik Uzmanı | SOC Analist | Penetration Tester'},
   {t:'purple',txt:'Role:     Security Analyst & CTF Player'},
   {t:'orange',txt:'Location: Turkey 🇹🇷'},
   {t:'out',txt:'LinkedIn: linkedin.com/in/ismailkulah'},
   {t:'prompt',txt:'skills --list --verbose'},
-  {t:'out',txt:'[★★★★★] Digital Forensics (Autopsy, Volatility, FTK)'},
+  {t:'out',txt:'[★★★★★] Digital Forensics (Autopsy, Volatility, FTK, EZ Tools)'},
   {t:'out',txt:'[★★★★★] Threat Hunting (MITRE ATT&CK, SIEM, EDR)'},
   {t:'out',txt:'[★★★★☆] Penetration Testing (Burp Suite, Metasploit, Nmap)'},
   {t:'out',txt:'[★★★★☆] Malware Analysis (Static + Dynamic)'},
@@ -391,6 +573,27 @@ function addLine(){
 }
 setTimeout(addLine,600);
 
+// LIVE THREAT FEED SIMULATION
+const fakeIPs=['185.220.101.','45.142.122.','198.51.100.','203.0.113.','91.219.236.','194.165.16.'];
+const flags=['🇷🇺','🇨🇳','🇰🇵','🇧🇷','🇮🇷','🇺🇦','🇳🇱'];
+const actions=['Port Scan','Brute Force','SQLi Attempt','XSS Probe','C2 Beacon','Exploit Attempt'];
+function addThreatRow(){
+  const feed=document.getElementById('threat-feed');
+  const ip=fakeIPs[Math.floor(Math.random()*fakeIPs.length)]+Math.floor(Math.random()*255);
+  const flag=flags[Math.floor(Math.random()*flags.length)];
+  const action=actions[Math.floor(Math.random()*actions.length)];
+  const sevRoll=Math.random();
+  const sev=sevRoll>.7?'high':sevRoll>.35?'med':'low';
+  const sevText=sev==='high'?'HIGH':sev==='med'?'MED':'LOW';
+  const row=document.createElement('div');
+  row.className='am-row';
+  row.innerHTML=`<span class="am-ip">${ip}</span><span class="am-flag">${flag} ${action}</span><span class="am-sev ${sev}">${sevText}</span>`;
+  feed.insertBefore(row,feed.firstChild);
+  if(feed.children.length>12)feed.removeChild(feed.lastChild);
+}
+for(let i=0;i<8;i++)setTimeout(addThreatRow,i*150);
+setInterval(addThreatRow,2200);
+
 // SKILLS
 const skills=[
   {n:'SIEM (Splunk/ELK)',v:88},{n:'Digital Forensics',v:90},{n:'Threat Hunting',v:85},
@@ -404,7 +607,6 @@ document.getElementById('skills-grid').innerHTML=skills.map(s=>`
     <div class="skill-bar"><div class="skill-fill" style="width:0%" data-w="${s.v}%"></div></div>
   </div>`).join('');
 
-// Animate skill bars on scroll
 const obs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting)e.target.querySelectorAll('.skill-fill').forEach(b=>b.style.width=b.dataset.w)});
 },{threshold:.3});
